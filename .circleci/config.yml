@@ -14,7 +14,7 @@ jobs:
           name: Install npm dependencies
           command: npm install --save
       - run:
-          name: Run Unit Tests
+          name: Run Tests (Coverage, Unit test, Integration test)
           command: npm test
       - sonarcloud/scan 
 workflows:
