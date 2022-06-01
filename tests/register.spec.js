@@ -2,6 +2,11 @@ const server = require("../app");
 const supertest = require("supertest");
 
 const {pool} = require('../database/connection');
+
+beforeAll(async () => {
+    await truncateTables();
+});
+
 describe('register test', () => {
 
     const userArrayPass = [
@@ -13,16 +18,16 @@ describe('register test', () => {
             password: "JmE95osSMM4bYF", 
             dateOfBirth: "1979-01-01",
             classId: null,
-        }, expected: "Something went wrong. Try again."},
+        }, expected: `User Dagmara Przygocka is registered & logged in!`},
         {args: {
             firstName: "Marianna",
             lastName: "Smith",
             userRole: "STUDENT",
-            email: " v-m@yahoo.com",
+            email: "v-m@yahoo.com",
             password: "JmE95osSMM4bYK", 
             dateOfBirth: "1969-01-01",
             classId: 1,
-        }, expected: "Something went wrong. Try again."}
+        }, expected: `User Marianna Smith is registered & logged in!`}
     ];
     const userArrayFail = [
         {args: {
@@ -74,31 +79,32 @@ describe('register test', () => {
 
     userArrayPass.forEach(({ args, expected }) => {
         test("POST /api/users/register", async () => {
+            await addClass();
             await supertest(server).post(`/api/users/register`)
-                .send({args})
-                .expect(200)
+                .send({...args})
+                .expect(202)
                 .then((response) => {
                     expect(response.body).toBeTruthy();
                     expect(response.body.message).toEqual(expected);
                 }).catch( (e) => {
                     throw e.stack;
                 });
-                await deleteUserFromDB();
+                await truncateTables();
         }, 20000);
     });
 
     userArrayFail.forEach(({ args, expected }) => {
         test("POST /api/users/register", async () => {
+            await addClass();
             await supertest(server).post(`/api/users/register`)
-                .send({args})
-                .expect(200)
+                .send({...args})
                 .then((response) => {
                     expect(response.body).toBeTruthy();
                     expect(response.body.message).toEqual(expected);
                 }).catch( (e) => {
                     throw e.stack;
                 });
-                await deleteUserFromDB();
+                await truncateTables();
         }, 20000);
     });
 
@@ -107,19 +113,40 @@ describe('register test', () => {
     });
 
 });
-
-function deleteUserFromDB () {
+const addClass = () => {
     return new Promise((resolve, reject) => {
-        pool.getConnection((err, db) => {
-            let query =
-                'DELETE FROM users where user_id >0;';
-            db.query(query, (error, result, fields) => {
-                if (error) {
-                    reject(error);
-                }
-                resolve("Data deleted");
-            });
-            db.release();
+      pool.getConnection((err, db) => {
+        let query = 'INSERT INTO classes VALUES(1,"SD22w");';
+  
+        db.query(query, (error, result, fields) => {
+          if (error) {
+            reject(error);
+          }
+          resolve(result.insertId);
         });
-    })
-}
+        db.release();
+      });
+    });
+};
+
+const truncateTables = () => {
+    return new Promise((resolve, reject) => {
+      pool.getConnection((err, db) => {
+        let query =
+          'SET FOREIGN_KEY_CHECKS=0; ' +
+          'TRUNCATE TABLE courses; ' +
+          'TRUNCATE TABLE classes; ' +
+          'TRUNCATE TABLE users; ' +
+          'TRUNCATE TABLE lectures; ' +
+          'TRUNCATE TABLE attendance; ' +
+          'SET FOREIGN_KEY_CHECKS=1;';
+        db.query(query, (error, result, fields) => {
+          if (error) {
+            reject(error);
+          }
+          resolve(result);
+        });
+        db.release();
+      });
+    });
+};
