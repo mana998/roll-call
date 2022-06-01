@@ -1,14 +1,8 @@
 const server = require("../app");
 const supertest = require("supertest");
-
-beforeAll(async () => {
-    console.log('before all');
-    await truncateTables();
-});
-
 const {pool} = require('../database/connection');
-describe('login test', () => {
 
+describe('login test', () => {
     const loginPass = [
         {args: {
             email: "v-kane@yahoo.com",
@@ -20,56 +14,55 @@ describe('login test', () => {
         {args: {
             email: "fake-kane@yahoo.com",
             password: "JmE95osSMM4bYF"
-        }, expected: "Incorrect username or password. Try again."
+        }, expected: "Invalid password or email"
         },
         {args: {
             email: "v-kane@yahoo.com",
             password: "JmE95osSMM4bYG"
-        }, expected: "Incorrect username or password. Try again."
+        }, expected: "Invalid password or email"
         },
     ]
 
     loginPass.forEach(({ args }) => {
         test("POST /api/users/login", async () => {
+            await truncateTables();
             await insertInitialData();
             await supertest(server).post(`/api/users/login`)
-                .send({args})
-                .expect(200)
+                .send({...args})
+                .expect(202)
                 .then((response) => {
                     expect(response.body).toBeTruthy();
-                    expect(typeof response.body.userId).toBe('number');
-                    expect(response.body.role).toEqual("TEACHER");
-                    expect(response.body.role).toEqual("TEACHER");
-                    expect(response.body.email).toEqual("v-kane@yahoo.com");
-                    expect(response.body.firstName).toEqual("Dagmara");
-                    expect(response.body.firstName).toEqual("Przygocka");
+                    expect(typeof response.body.claims.id).toBe('number');
+                    expect(response.body.claims.role).toEqual("TEACHER");
+                    expect(response.body.claims.email).toEqual("v-kane@yahoo.com");
+                    expect(response.body.claims.firstName).toEqual("Kane");
+                    expect(response.body.claims.lastName).toEqual("Vasquez");
                 }).catch( (e) => {
                     throw e.stack;
                 });
-                //await deleteUserFromDB();
                 await truncateTables();
         }, 20000);
     });
 
     loginFail.forEach(({ args, expected }) => {
         test("POST /api/users/login", async () => {
+            await truncateTables();
             await insertInitialData();
             await supertest(server).post(`/api/users/login`)
-                .send({args})
-                .expect(200)
+                .send({...args})
+                .expect(401)
                 .then((response) => {
                     expect(response.body).toBeTruthy();
                     expect(response.body.message).toEqual(expected);
                 }).catch( (e) => {
                     throw e.stack;
                 });
-                //await deleteUserFromDB();
                 await truncateTables();
         }, 20000);
     });
 
-    afterAll(()=> {
-        //await truncateTables();
+    afterAll( async ()=> {
+        await truncateTables();
         pool.end();
     });
 

@@ -108,7 +108,8 @@ describe('register test', () => {
         }, 20000);
     });
 
-    afterAll(()=> {
+    afterAll( async ()=> {
+        await truncateTables();
         pool.end();
     });
 

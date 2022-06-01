@@ -126,11 +126,10 @@ router.post('/api/users/register', (req, res) => {
 
 router.post('/api/users/login', (req, res) => {
   const { email, password } = req.body;
-
+  checkEmail(email);
   if (!email || !password) {
-    return res.status(422).send({ error: 'Must provide email and password' });
+    return res.status(422).send({ message: 'Must provide email and password' });
   }
-
   try {
     pool.getConnection((err, db) => {
       let query = 'SELECT * FROM users WHERE email = ?';
@@ -164,24 +163,23 @@ router.post('/api/users/login', (req, res) => {
                     secure: true,
                     maxAge: 24 * 60 * 60 * 1000 // 1 day
                   });
-
                   res.status(202).json({ claims: user, accessToken });
                 } else {
-                  res.status(500).send({ error: 'Something went wrong' });
+                  res.status(500).send({ message: 'Something went wrong' });
                 }
               });
             } else {
-              return res.status(401).send({ error: 'Invalid password or email' });
+              return res.status(401).send({ message: 'Invalid password or email' });
             }
           });
         } else {
-          return res.status(401).send({ error: 'Invalid password or email' });
+          return res.status(401).send({ message: 'Invalid password or email' });
         }
       });
       db.release();
     });
   } catch (e) {
-    return res.status(401).send({ error: 'Invalid password or email' });
+    return res.status(401).send({ message: 'Invalid password or email' });
   }
 });
 
