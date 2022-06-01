@@ -166,6 +166,7 @@ describe('/api/attendance/:attendanceId', () => {
 
 afterAll(async () => {
   await truncateTables();
+  pool.end();
   // server.close();
   // await new Promise((resolve) => setTimeout(() => resolve(), 500)); // avoid jest open handle error
 });

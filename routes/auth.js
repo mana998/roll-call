@@ -49,10 +49,8 @@ router.get('/refresh', (req, res) => {
 router.post('/api/users/register', (req, res) => {
   const { email, password, firstName, lastName, dateOfBirth, userRole, classId } =
     req.body;
-
   try {
     if (!userRole || (userRole !== 'TEACHER' && userRole !== 'STUDENT')) {
-      console.log(userRole);
       res.send({
         message: 'Please choose the role: TEACHER or STUDENT.'
       });
@@ -60,6 +58,8 @@ router.post('/api/users/register', (req, res) => {
     } else if (userRole === 'STUDENT') {
       checkAge(dateOfBirth);
     }
+    checkEmail(email);
+    checkNameAndSurname(firstName, lastName);
 
     bcrypt.hash(password, saltRounds, (error, hash) => {
       if (!error) {
@@ -100,7 +100,7 @@ router.post('/api/users/register', (req, res) => {
                 });
                 res
                   .status(202)
-                  .send(`User ${firstName} ${lastName} is registered & logged in!`);
+                  .send({message: `User ${firstName} ${lastName} is registered & logged in!`});
               } else {
                 res.send({
                   message: 'Something went wrong'
@@ -118,17 +118,18 @@ router.post('/api/users/register', (req, res) => {
       }
     });
   } catch (e) {
-    return res.status(422).send(e.message);
+    return res.status(422).send({
+      message: 'Something went wrong. Try again.'
+    });
   }
 });
 
 router.post('/api/users/login', (req, res) => {
   const { email, password } = req.body;
-
+  checkEmail(email);
   if (!email || !password) {
-    return res.status(422).send({ error: 'Must provide email and password' });
+    return res.status(422).send({ message: 'Must provide email and password' });
   }
-
   try {
     pool.getConnection((err, db) => {
       let query = 'SELECT * FROM users WHERE email = ?';
@@ -162,24 +163,23 @@ router.post('/api/users/login', (req, res) => {
                     secure: true,
                     maxAge: 24 * 60 * 60 * 1000 // 1 day
                   });
-
                   res.status(202).json({ claims: user, accessToken });
                 } else {
-                  res.status(500).send({ error: 'Something went wrong' });
+                  res.status(500).send({ message: 'Something went wrong' });
                 }
               });
             } else {
-              return res.status(401).send({ error: 'Invalid password or email' });
+              return res.status(401).send({ message: 'Invalid password or email' });
             }
           });
         } else {
-          return res.status(401).send({ error: 'Invalid password or email' });
+          return res.status(401).send({ message: 'Invalid password or email' });
         }
       });
       db.release();
     });
   } catch (e) {
-    return res.status(401).send({ error: 'Invalid password or email' });
+    return res.status(401).send({ message: 'Invalid password or email' });
   }
 });
 
@@ -220,11 +220,28 @@ router.get('/logout', (req, res) => {
 
 // check if student is above 19 years old
 const checkAge = (dateOfBirth) => {
-  if (Object.prototype.toString.call(dateOfBirth) === '[object Date]') {
+  if (Object.prototype.toString.call(dateOfBirth) === '[object String]') {
     let pastDate = new Date();
     pastDate.setFullYear(pastDate.getFullYear() - 19);
-
     return pastDate >= dateOfBirth;
+  } else {
+    throw new Error('Invalid format');
+  }
+};
+
+const checkEmail = (email) => {
+  const mailformat = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+  if (email.match(mailformat)) {
+    return true;
+  } else {
+    throw new Error('Invalid format');
+  }
+};
+
+const checkNameAndSurname = (firstName, lastName) => {
+  const mailformat = /^[A-Za-z0-9]*$/;
+  if (firstName.match(mailformat) && lastName.match(mailformat)) {
+    return true;
   } else {
     throw new Error('Invalid format');
   }
