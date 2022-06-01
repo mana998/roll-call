@@ -1,6 +1,11 @@
 const server = require("../app");
 const supertest = require("supertest");
 
+beforeAll(async () => {
+    console.log('before all');
+    await truncateTables();
+});
+
 const {pool} = require('../database/connection');
 describe('login test', () => {
 
@@ -41,7 +46,8 @@ describe('login test', () => {
                 }).catch( (e) => {
                     throw e.stack;
                 });
-                await deleteUserFromDB();
+                //await deleteUserFromDB();
+                await truncateTables();
         }, 20000);
     });
 
@@ -57,36 +63,43 @@ describe('login test', () => {
                 }).catch( (e) => {
                     throw e.stack;
                 });
-                await deleteUserFromDB();
+                //await deleteUserFromDB();
+                await truncateTables();
         }, 20000);
     });
 
     afterAll(()=> {
+        //await truncateTables();
         pool.end();
     });
 
 });
-
-function deleteUserFromDB () {
+const truncateTables = () => {
     return new Promise((resolve, reject) => {
-        pool.getConnection((err, db) => {
-            let query =
-                'DELETE FROM users where user_id >0;';
-            db.query(query, (error, result, fields) => {
-                if (error) {
-                    reject(error);
-                }
-                resolve("Data deleted");
-            });
-            db.release();
+      pool.getConnection((err, db) => {
+        let query =
+          'SET FOREIGN_KEY_CHECKS=0; ' +
+          'TRUNCATE TABLE courses; ' +
+          'TRUNCATE TABLE classes; ' +
+          'TRUNCATE TABLE users; ' +
+          'TRUNCATE TABLE lectures; ' +
+          'TRUNCATE TABLE attendance; ' +
+          'SET FOREIGN_KEY_CHECKS=1;';
+        db.query(query, (error, result, fields) => {
+          if (error) {
+            reject(error);
+          }
+          resolve(result);
         });
-    })
-}
+        db.release();
+      });
+    });
+};
 
 function insertInitialData (){
     return new Promise((resolve, reject) => {
         pool.getConnection((err, db) => {
-            let query = `INSERT INTO users (user_id, first_name, last_name, email, user_role, password, class_id) VALUES (1, "Kane", "Vasquez", "v-kane@yahoo.com", "TEACHER", "$2b$15$PGfdEXxNY2M.OSsh1mjIFuy9Tg32Z3Cc5QkKPGIW5f.DNVXpGYwOa", NULL);`;
+            let query = `INSERT INTO users (user_id, first_name, last_name, email, user_role, password, date_of_birth, class_id) VALUES (1, "Kane", "Vasquez", "v-kane@yahoo.com", "TEACHER", "$2b$15$PGfdEXxNY2M.OSsh1mjIFuy9Tg32Z3Cc5QkKPGIW5f.DNVXpGYwOa", "2000-01-01", NULL);`;
             db.query(query, (error, result, fields) => {
                 if (error) {
                     reject(error);
