@@ -184,7 +184,7 @@ describe('test calculateClassAttendanceBetweenDates()', () => {
       // expected results
       '60.00'
     ],
-    // test 8
+    // test 8 
     [
       // description
       'Different types of data',

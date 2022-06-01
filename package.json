@@ -2,7 +2,7 @@
   "name": "roll-call",
   "version": "1.0.0",
   "description": "Mandatory 2 for class development of large systems",
-  "main": "app.js",
+  "main": "index.js",
   "scripts": {
     "test": "cross-env ENV=test jest --verbose --coverage --forceExit",
     "start": "node index.js",
@@ -40,7 +40,9 @@
   "devDependencies": {
     "cross-env": "^7.0.3",
     "jest": "^28.1.0",
-    "nodemon": "^2.0.16"
+    "nodemon": "^2.0.16",
+    "supertest": "^6.2.3",
+    "socket.io": "^4.5.0"
   },
   "jest": {
     "testEnvironment": "node",
@@ -58,7 +60,6 @@
   "prettier": {
     "singleQuote": true,
     "trailingComma": "none",
-    "printWidth": 90,
-    "socket.io": "^4.5.0"
+    "printWidth": 90
   }
 }

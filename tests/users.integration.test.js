@@ -192,7 +192,6 @@ const deleteCoursesFromDB = () => {
 //     });
 // });
 
-
 describe('student integration tests', () => {
   // make it as a transaction
 

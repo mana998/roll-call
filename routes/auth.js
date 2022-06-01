@@ -52,6 +52,7 @@ router.post('/api/users/register', (req, res) => {
 
   try {
     if (!userRole || (userRole !== 'TEACHER' && userRole !== 'STUDENT')) {
+      console.log(userRole);
       res.send({
         message: 'Please choose the role: TEACHER or STUDENT.'
       });
