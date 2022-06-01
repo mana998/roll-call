@@ -230,7 +230,7 @@ function calculateClassAttendanceBetweenDates(attendance, date, oldDate) {
 }
 
 function calculateStudentsAttendance(attendance) {
-  const userAttendance = [];
+  const userAttendance = {};
 
   if (attendance && attendance.length && Array.isArray(attendance)) {
     attendance.map((user) => {

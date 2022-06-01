@@ -2,6 +2,29 @@ const server = require("../app");
 const supertest = require("supertest");
 
 const {pool} = require('../database/connection');
+
+const truncateTables = () => {
+    return new Promise((resolve, reject) => {
+    pool.getConnection((err, db) => {
+    let query =
+        'SET FOREIGN_KEY_CHECKS=0; ' +
+        'TRUNCATE TABLE courses; ' +
+        'TRUNCATE TABLE classes; ' +
+        'TRUNCATE TABLE users; ' +
+        'TRUNCATE TABLE lectures; ' +
+        'TRUNCATE TABLE attendance; ' +
+        'SET FOREIGN_KEY_CHECKS=1;';
+    db.query(query, (error, result, fields) => {
+        if (error) {
+        reject(error);
+        }
+        resolve(result);
+    });
+    db.release();
+    });
+});
+};
+
 describe('teacherStatistics test', () => {
 
     test("POST /api/users/teachers/attendance/:teacherId correct", async () => {
@@ -9,28 +32,42 @@ describe('teacherStatistics test', () => {
         const class_id = 1;
         const course_id = 1;
         const teacherId = 1;
-        await supertest(server).post(`/api/users/teachers/attendance/${teacherId}`)
-            .send({data: {class_id, course_id}})    
-            .expect(200)
-            .then((response) => {
-                //console.log(response);
-                expect((response.body)).toBeTruthy();
-                expect(response.body.classAttendance).toEqual("50.00");
-                expect(response.body.monthlyAttendance).toEqual("0.00");
-                expect(response.body.weeklyAttendance).toEqual("0.00");
-                expect(response.body.studentsAttendance['bodom9915@yahoo.net'].firstName).toEqual('Brenden');
-                expect(response.body.studentsAttendance['bodom9915@yahoo.net'].lastName).toEqual('Odom');
-                expect(response.body.studentsAttendance['bodom9915@yahoo.net'].attendance).toEqual("50.00");
-                expect(response.body.studentsAttendance['m-mckay5458@yahoo.net'].firstName).toEqual('Mira');
-                expect(response.body.studentsAttendance['m-mckay5458@yahoo.net'].lastName).toEqual('Mckay');
-                expect(response.body.studentsAttendance['m-mckay5458@yahoo.net'].attendance).toEqual("50.00");
-            }).catch( (e) => {
-                throw e.stack;
+        let accessToken = '';
+        try {
+            const registerResponse = await supertest(server).post('/api/users/login').send({
+                "email": "v-kane@yahoo.com",
+                "password": "JmE95osSMM4bYF"
             });
-            await deleteData();
+            accessToken = registerResponse._body.accessToken;
+            if (accessToken) {
+                await supertest(server).post(`/api/users/teachers/attendance/${teacherId}`)
+                    .set({Authorization: "Bearer " + accessToken})
+                    .send({data: {class_id, course_id}})    
+                    .expect(200)
+                    .then((response) => {
+                        expect((response.body)).toBeTruthy();
+                        expect(response.body.classAttendance).toEqual("50.00");
+                        expect(response.body.monthlyAttendance).toEqual("0.00");
+                        expect(response.body.weeklyAttendance).toEqual("0.00");
+                        expect(response.body.studentsAttendance['bodom9915@yahoo.net'].firstName).toEqual('Brenden');
+                        expect(response.body.studentsAttendance['bodom9915@yahoo.net'].lastName).toEqual('Odom');
+                        expect(response.body.studentsAttendance['bodom9915@yahoo.net'].attendance).toEqual("50.00");
+                        expect(response.body.studentsAttendance['m-mckay5458@yahoo.net'].firstName).toEqual('Mira');
+                        expect(response.body.studentsAttendance['m-mckay5458@yahoo.net'].lastName).toEqual('Mckay');
+                        expect(response.body.studentsAttendance['m-mckay5458@yahoo.net'].attendance).toEqual("50.00");
+                    }).catch( (e) => {
+                        throw e.stack;
+                    });
+            } else {
+                throw('Failed to obtain access token');
+            }
+        } catch (error) {
+            throw(error);
+        }
+        await truncateTables();
     }, 20000);
 
-    const testsFail = [
+     const testsFail = [
         { args: {
                 teacherId: 0,
                 class_id: 1,
@@ -80,24 +117,40 @@ describe('teacherStatistics test', () => {
     testsFail.forEach(({ args, expected }) => {
         test(`POST /api/users/teachers/attendance/:teacherId fail with args ${args} expect ${expected}`, async () => {
             await insertInitialData();
-            await supertest(server).post(`/api/users/teachers/attendance/${args.teacherId}`)
-                .send({data: {class_id: args.class_id, course_id: args.course_id}})  
-                .expect(200)
-                .then((response) => {
-                    expect((response.body)).toBeTruthy();
-                    expect(response.body.message).toEqual(expected);
-                }).catch( (e) => {
-                    throw e.stack;
+            let accessToken = '';
+            try {
+                const registerResponse = await supertest(server).post('/api/users/login').send({
+                    "email": "v-kane@yahoo.com",
+                    "password": "JmE95osSMM4bYF"
                 });
-                await deleteData();
+                accessToken = registerResponse._body.accessToken;
+                if (accessToken) {
+                    await supertest(server).post(`/api/users/teachers/attendance/${args.teacherId}`)
+                        .set({Authorization: "Bearer " + accessToken})
+                        .send({data: {class_id: args.class_id, course_id: args.course_id}})  
+                        .expect(200)
+                        .then((response) => {
+                            expect((response.body)).toBeTruthy();
+                            expect(response.body.message).toEqual(expected);
+                        }).catch( (e) => {
+                            throw e.stack;
+                        });
+                } else {
+                    throw('Failed to obtain access token');
+                }
+            } catch (error) {
+                throw(error);
+            }
+            //await deleteData();
         }, 20000);
+        await truncateTables();
     });
 
     afterAll(()=> {
         pool.end();
     });
 });
-
+/*
 function insertInitialData (){
     return new Promise((resolve, reject) => {
         pool.getConnection((err, db) => {
@@ -106,9 +159,9 @@ function insertInitialData (){
                 if (error) {
                     reject(error);
                 } else {
-                    let query = `INSERT INTO users (user_id, first_name, last_name, email, user_role, password, class_id) VALUES (1, "Kane", "Vasquez", "v-kane@yahoo.com", "TEACHER", "$2b$15$PGfdEXxNY2M.OSsh1mjIFuy9Tg32Z3Cc5QkKPGIW5f.DNVXpGYwOa", NULL),
-                            (7, "Brenden", "Odom", "bodom9915@yahoo.net", "STUDENT", "$2b$15$1CvVo/487ouwkSFjDixa1uJTPJ/S5zzPlLgGZYeoJ19I8L0jiRSHe", 1),
-                            (8, "Mira", "Mckay", "m-mckay5458@yahoo.net", "STUDENT", "$2b$15$fEaiqLCLPiiY13xA9tx6xeWiWuK7ozZ0rgqyIz4iX1y.1gBZOasLK", 1);`;
+                    let query = `INSERT INTO users (user_id, first_name, last_name, email, user_role, password, class_id, date_of_birth) VALUES (1, "Kane", "Vasquez", "v-kane@yahoo.com", "TEACHER", "$2b$15$PGfdEXxNY2M.OSsh1mjIFuy9Tg32Z3Cc5QkKPGIW5f.DNVXpGYwOa", NULL, "1980-05-29"),
+                            (7, "Brenden", "Odom", "bodom9915@yahoo.net", "STUDENT", "$2b$15$PGfdEXxNY2M.OSsh1mjIFuy9Tg32Z3Cc5QkKPGIW5f.DNVXpGYwOa", 1, "2000-05-29"),
+                            (8, "Mira", "Mckay", "m-mckay5458@yahoo.net", "STUDENT", "$2b$15$PGfdEXxNY2M.OSsh1mjIFuy9Tg32Z3Cc5QkKPGIW5f.DNVXpGYwOa", 1, "2000-05-29");`;
                         db.query(query, (error, result, fields) => {
                         if (error) {
                             reject(error);
@@ -149,44 +202,29 @@ function insertInitialData (){
         });
     })
 }
+*/
 
-function deleteData (){
+function insertInitialData (){
     return new Promise((resolve, reject) => {
         pool.getConnection((err, db) => {
-            let query = `DELETE FROM attendance WHERE attendance_id > 0;`;
+            let query = `INSERT INTO classes (class_id, name) VALUES (1, 'SD22w');
+            INSERT INTO users (user_id, first_name, last_name, email, user_role, password, class_id, date_of_birth) VALUES (1, "Kane", "Vasquez", "v-kane@yahoo.com", "TEACHER", "$2b$15$PGfdEXxNY2M.OSsh1mjIFuy9Tg32Z3Cc5QkKPGIW5f.DNVXpGYwOa", NULL, "1980-05-29"),
+                (7, "Brenden", "Odom", "bodom9915@yahoo.net", "STUDENT", "$2b$15$PGfdEXxNY2M.OSsh1mjIFuy9Tg32Z3Cc5QkKPGIW5f.DNVXpGYwOa", 1, "2000-05-29"),
+                (8, "Mira", "Mckay", "m-mckay5458@yahoo.net", "STUDENT", "$2b$15$PGfdEXxNY2M.OSsh1mjIFuy9Tg32Z3Cc5QkKPGIW5f.DNVXpGYwOa", 1, "2000-05-29");
+            INSERT INTO courses (course_id, name) VALUES (1, 'Development of Large Systems');
+            INSERT INTO lectures (lecture_id, course_id, teacher_id, start_date_time, class_id) VALUES
+                (1, 1, 1, "2022-03-03 8:30:00", 1),
+                (2, 1, 1, "2022-03-03 9:15:00", 1),      
+                (3, 1, 1, "2022-03-03 10:00:00", 1),      
+                (4, 1, 1, "2022-03-03 10:45:00", 1);
+            INSERT INTO attendance (user_id, lecture_id, is_attending) VALUES
+                (7, 1, 1), (7, 2, 1), (7, 3, 0), (7, 4, 0),
+                (8, 1, 0), (8, 2, 0), (8, 3, 1), (8, 4, 1);`;
             db.query(query, (error, result, fields) => {
                 if (error) {
                     reject(error);
                 } else {
-                    let query = `DELETE FROM lectures WHERE lecture_id > 0;`;
-                    db.query(query, (error, result, fields) => {
-                        if (error) {
-                            reject(error);
-                        } else {
-                            let query = `DELETE FROM courses WHERE course_id > 0;`;
-                            db.query(query, (error, result, fields) => {
-                                if (error) {
-                                    reject(error);
-                                } else {
-                                    let query = `DELETE FROM users WHERE user_id > 0;`;
-                                    db.query(query, (error, result, fields) => {
-                                        if (error) {
-                                            reject(error);
-                                        } else {
-                                            let query = `DELETE FROM classes WHERE class_id > 0;`;
-                                            db.query(query, (error, result, fields) => {
-                                                if (error) {
-                                                    reject(error);
-                                                } else {
-                                                    resolve(result);
-                                                }
-                                            });
-                                        }
-                                    });
-                                }
-                            });
-                        }
-                    });
+                        resolve(result);
                 }
             });
             db.release();
