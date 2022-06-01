@@ -4,8 +4,10 @@
   "description": "Mandatory 2 for class development of large systems",
   "main": "index.js",
   "scripts": {
-    "test": "jest --verbose --coverage --runInBand",
+    "test": "cross-env ENV=test jest --verbose --coverage --forceExit",
     "start": "node index.js",
+    "dev": "nodemon index.js",
+    "lint": "eslint . --fix",
     "sonar": "npx sonar-scanner"
   },
   "repository": {
@@ -20,16 +22,27 @@
   "homepage": "https://github.com/dprzygocka/roll-call#readme",
   "dependencies": {
     "bcrypt": "^5.0.1",
+    "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "dotenv": "^16.0.0",
+    "eslint-plugin-jest": "^26.2.2",
     "express": "^4.17.3",
     "express-session": "^1.17.2",
     "jest": "^28.1.0",
     "jest-sonar-reporter": "^2.0.0",
+    "jsonwebtoken": "^8.5.1",
     "mysql2": "^2.3.3",
     "node-fetch": "^2.6.6",
     "socket.io": "^4.5.0",
-    "socket.io-client": "^4.5.0"
+    "socket.io-client": "^4.5.0",
+    "supertest": "^6.2.3"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3",
+    "jest": "^28.1.0",
+    "nodemon": "^2.0.16",
+    "supertest": "^6.2.3",
+    "socket.io": "^4.5.0"
   },
   "jest": {
     "testEnvironment": "node",
@@ -44,7 +57,9 @@
     "reportFile": "test-reporter.xml",
     "indent": 4
   },
-  "devDependencies": {
-    "supertest": "^6.2.3"
+  "prettier": {
+    "singleQuote": true,
+    "trailingComma": "none",
+    "printWidth": 90
   }
 }
