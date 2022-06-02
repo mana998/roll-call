@@ -4,26 +4,28 @@ const request = supertest(server);
 
 const {pool} = require('../database/connection');
 
-// beforeAll(() => {
-//   // Connect to DB
-//   pool.getConnection();
-// });
+const getAccessToken = async () => {
+    try {
+        const registerResponse = await request.post('/api/users/login').send({
+          "email": "v-kane@yahoo.com",
+          "password": "JmE95osSMM4bYF"
+        });
+        const accessToken = registerResponse._body.accessToken;
+        return accessToken;
+      } catch (error) {
+        console.log(error);
+      }
+};
 
-// returns a string representing a datetime on the same day
-const getDateTime = () => {
-    const today = new Date();
-    const date = today.getFullYear() + '-' + String((today.getMonth() + 1)).padStart(2, '0') + '-' + String((today.getDate())).padStart(2, '0');
-    const time = String(today.getHours() + 5).padStart(2, '0') + ':' + String(today.getMinutes()).padStart(2, '0') + ':' + String(today.getSeconds()).padStart(2, '0');
-    return `${date} ${time}`;
-}
-
-const saveTeacherToDB = () => {
-    return new Promise((resolve, reject) => {
+// CREATE testing records
+const createClass = () => {
+    return new Promise((resolve, reject) => { 
         pool.getConnection((err, db) => {
-            let query =
-                'INSERT INTO users (first_name, last_name, email, user_role, password, class_id) ' +
-                'VALUES ("Kane", "Vasquez", "tester@yhoo.com", "TEACHER", "$2b$15$PGfdEXxNY2M.OSsh1mjIFuy9Tg32Z3Cc5QkKPGIW5f.DNVXpGYwOa", NULL);';
-            db.query(query, (error, result, fields) => {
+            const createClassQuery = `
+              INSERT INTO classes (name)
+              VALUES ('TEST Class');
+            `;
+            db.query(createClassQuery, (error, result) => {
                 if (error) {
                     reject(error);
                 }
@@ -32,194 +34,218 @@ const saveTeacherToDB = () => {
             db.release();
         });
     })
-}
-
-// const createCourse = () => {
-//   pool.getConnection( async (err, db) => {
-//     const createCourseQuery = `
-//       INSERT INTO courses (name)
-//       VALUES ('TEST Course');
-//     `;
-//     const result = await db.query(createCourseQuery);
-//     console.log("result", result)
-//     return result;
-//   });
-// };
-
-const saveStudentToDB = async() => {
-  pool.getConnection((err, db) => {
-    const createStudentQuery = `
-      INSERT INTO users (user_role, email, password, first_name, last_name, date_of_birth, class_id)
-      VALUES ('STUDENT', 'test@email.com', 'test_password', 'test first name', 'test last name', ${new Date('2022-04-20')} )
-    `;
-  });
 };
 
-const saveLectureToDB = (teacherId, dateTime) => {
-    let lecture = {
-        lecture_id: undefined,
-        start_date_time: dateTime,
-        course_id: 1,
-        class_id: 1,
-    }
-    return new Promise((resolve, reject) => {
+const createUser = (classId) => {
+    return new Promise((resolve, reject) => { 
         pool.getConnection((err, db) => {
-            let query = `INSERT INTO lectures (teacher_id, start_date_time, course_id, class_id) VALUES (${teacherId},"${dateTime}", 1, 1);`;
-            db.query(query, (error, result, fields) => {
+            let createUserQuery = '';
+            if (classId) {
+                createUserQuery = `
+                INSERT INTO users (user_role, email, password, first_name, last_name, date_of_birth, class_id)
+                VALUES ('STUDENT', 'TEST@student.com', 'TEST_password', 'TEST fname', 'TEST lname', '2022-04-22', '${classId}');
+              `;
+            } else {
+                createUserQuery = `
+                INSERT INTO users (user_role, email, password, first_name, last_name, date_of_birth)
+                VALUES ('TEACHER', 'TEST@teacher.com', 'TEST_password', 'TEST fname', 'TEST lname', '2022-01-22');
+              `;
+            }
+            db.query(createUserQuery, (error, result) => {
                 if (error) {
-                    console.log('error inserting lecture...')
                     reject(error);
                 }
-                lecture.lecture_id = result.insertId;
-                resolve(lecture);
+                resolve(result.insertId);
             });
             db.release();
         });
     })
-}
+};
 
-const saveCoursesToDB = () => {
-    return new Promise((resolve, reject) => {
+const createCourse = () => {
+    return new Promise((resolve, reject) => { 
         pool.getConnection((err, db) => {
-            let query = `INSERT INTO courses (course_id, name) VALUES (1, 'Development of Large Systems'),(2, 'Databases for Developers'),(3, 'Testing');`;
-            db.query(query, (error, result, fields) => {
+            const createCourseQuery = `
+              INSERT INTO courses (name)
+              VALUES ('TEST Class');
+            `;
+            db.query(createCourseQuery, (error, result) => {
                 if (error) {
-                    console.log('error inserting courses...', error)
                     reject(error);
-                } else {
-                    resolve(true);
                 }
+                resolve(result.insertId);
             });
             db.release();
         });
     })
-}
+};
 
-const deleteLectureFromDB = () => {
-    return new Promise((resolve, reject) => {
+const createLecture = (teacherId, courseId, classId) => {
+    return new Promise((resolve, reject) => { 
         pool.getConnection((err, db) => {
-            let query = `DELETE FROM lectures;`;
-            db.query(query, (error, result, fields) => {
+            const createLectureQuery = `
+              INSERT INTO lectures (teacher_id, start_date_time, course_id, class_id)
+              VALUES ('${teacherId}', '2022-03-22 13:59:59', '${courseId}', ${classId});
+            `;
+            db.query(createLectureQuery, (error, result) => {
                 if (error) {
                     reject(error);
-                } else {
-                    resolve(true);
                 }
+                resolve(result.insertId);
             });
             db.release();
         });
     })
-}
+};
 
-const deleteTeacherFromDB = () => {
-    return new Promise((resolve, reject) => {
+const createAttendance = (studentId, lectureId) => {
+    return new Promise((resolve, reject) => { 
         pool.getConnection((err, db) => {
-            let query = `DELETE FROM users;`;
-            db.query(query, (error, result, fields) => {
+            const createAttendanceQuery = `
+              INSERT INTO attendance (user_id, lecture_id, is_attending)
+              VALUES ('${studentId}', '${lectureId}', '1');
+            `;
+            db.query(createAttendanceQuery, (error, result) => {
                 if (error) {
                     reject(error);
-               } else {
-                    resolve(true);
                 }
+                resolve(result.insertId);
             });
             db.release();
         });
     })
-}
+};
 
-const deleteCoursesFromDB = () => {
-    return new Promise((resolve, reject) => {
+// DELETE testing records
+const deleteAttendance = (id) => {
+    return new Promise((resolve, reject) => { 
         pool.getConnection((err, db) => {
-            let query = `DELETE FROM courses;`;
-            db.query(query, (error, result, fields) => {
+            const deleteQuery = `
+                DELETE FROM attendance 
+                WHERE attendance_id = ${id};
+            `;
+            db.query(deleteQuery, (error, result) => {
                 if (error) {
                     reject(error);
-                } else {
-                    resolve(true);
                 }
+                resolve();
             });
             db.release();
         });
     })
-}
+};
 
-// describe('teacher tests', () => {
+const deleteLecture = (id) => {
+    return new Promise((resolve, reject) => { 
+        pool.getConnection((err, db) => {
+            const deleteLectureQuery = `
+                DELETE FROM lectures 
+                WHERE lecture_id = ${id};
+            `;
+            db.query(deleteLectureQuery, (error, result) => {
+                if (error) {
+                    reject(error);
+                }
+                resolve();
+            });
+            db.release();
+        });
+    })
+};
 
-//     test("GET /api/users/lectures/:teacherId", async () => {
-//         const dateTime = getDateTime();
-//         await saveCoursesToDB();
-//         const teacherId = await saveTeacherToDB();
-//         const lecture = await saveLectureToDB(teacherId, dateTime);
-//         await supertest(server).get(`/api/users/lectures/${teacherId}`)
-//             .expect(200)
-//             .then((response) => {
-//                 expect(Array.isArray(response.body)).toBeTruthy();
-//                 expect(response.body.lecture_id).toEqual(lecture.lecture_id);
-//                 expect(response.body.start_date_time).toEqual(dateTime);
-//                 expect(response.body.name).toEqual('Development of Large Systems');
-//             }).catch(async (error) => {
-//                 console.log(error.stack());
-//             });
-//         await deleteLectureFromDB(teacherId);
-//         await deleteTeacherFromDB(teacherId);
-//         await deleteCoursesFromDB();
-//     }, 20000);
+const deleteUser = (id) => {
+    return new Promise((resolve, reject) => { 
+        pool.getConnection((err, db) => {
+            const deleteUserQuery = `
+                DELETE FROM users 
+                WHERE user_id = ${id};
+            `;
+            db.query(deleteUserQuery, (error, result) => {
+                if (error) {
+                    reject(error);
+                }
+                resolve();
+            });
+            db.release();
+        });
+    })
+};
 
-//     test("GET /api/users/classes/courses/all/:teacherId", async () => {
-//         const dateTime = getDateTime();
-//         await saveCoursesToDB();
-//         const teacherId = await saveTeacherToDB();
-//         console.log('teacher', teacherId)
-//         const lecture = await saveLectureToDB(teacherId, dateTime);
-//         console.log('lecture', lecture)
-//         await supertest(server).get(`/api/users/classes/courses/all/${teacherId}`)
-//             .expect(200)
-//             .then((response) => {
-//                 expect(Array.isArray(response.body)).toBeTruthy();
-//                 expect(response.body.course_id).toEqual(1);
-//                 expect(response.body.class_id).toEqual(1);
-//                 expect(response.body.courseName).toEqual('Development of Large Systems');
-//             }).catch(async (error) => {
-//                 console.log(error.stack())
-//             });
-//         await deleteLectureFromDB(teacherId);
-//         await deleteTeacherFromDB(teacherId);
-//         await deleteCoursesFromDB();
-//     }, 20000);
+const deleteClass = (id) => {
+    return new Promise((resolve, reject) => { 
+        pool.getConnection((err, db) => {
+            const deleteClassQuery = `
+                DELETE FROM classes 
+                WHERE class_id = ${id};
+            `;
+            db.query(deleteClassQuery, (error, result) => {
+                if (error) {
+                    reject(error);
+                }
+                resolve();
+            });
+            db.release();
+        });
+    })
+};
 
-//     afterAll(()=> {
-//         pool.end();
-//     });
-// });
-
+const deleteCourse = (id) => {
+    return new Promise((resolve, reject) => { 
+        pool.getConnection((err, db) => {
+            const deleteCourseQuery = `
+                DELETE FROM courses 
+                WHERE course_id = ${id};
+            `;
+            db.query(deleteCourseQuery, (error, result) => {
+                if (error) {
+                    reject(error);
+                }
+                resolve();
+            });
+            db.release();
+        });
+    })
+};
 
 describe('student integration tests', () => {
   // make it as a transaction
 
-  test("GET /api/users/students/attendance/:studentId", async () => {
-    //create course 
-    console.log('=======================================================')
-    // const course = createCourse();
-    // console.log('course', course);
+  test("GET /api/users/students/attendSance/:studentId", async () => {
 
-    // create new student query
+    // to test the attendance of a studSent to a specific lecture we need records in the following tables:
+    // attendances which requires records in: users (as a student), lectures
+    // users which requires records in: classes
+    // lectures which requires records in: users (as a teacher), courses, classes
+    
+    const classId = await createClass();
+    // console.log(classId);
+
+    const studentId = await createUser(classId);
+    // console.log(studentId);
+
+    const teacherId = await createUser(null);
+    // console.log(teacherId)
+
+    const courseId = await createCourse();
+    // console.log(courseId)
+
+    const lectureId = await createLecture(teacherId, courseId, classId);
+    // console.log(lectureId);
+
+    const attendanceId = await createAttendance(studentId, lectureId);
+    // console.log(attendanceId);
 
     // create new attendance for that student
-    let accessToken = '';
-    try {
-      const registerResponse = await request.post('/api/users/login').send({
-        "email": "v-kane@yahoo.com",
-        "password": "JmE95osSMM4bYF"
-      });
-      accessToken = registerResponse._body.accessToken;
-    } catch (error) {
-      console.log(error);
-    }
+    let accessToken = await getAccessToken();
     
     try {
       if (accessToken) {
-        const result = await request.get('/api/users/students/attendance/27').set({Authorization: "Bearer " + accessToken});
-        console.log(result._body);
+        const endpointResponse = await request.get(`/api/users/students/attendance/${studentId}`).set({Authorization: "Bearer " + accessToken});
+        expect(typeof endpointResponse.body).toBe('object');
+        expect(endpointResponse.statusCode).toBe(200);
+        expect(endpointResponse.body.firstName).toBe('TEST fname');
+        expect(endpointResponse.body.lastName).toBe('TEST lname');
+        expect(endpointResponse.body['TEST Class']).toBe('100.00');
       } else {
         console.log("No access token");
       }
@@ -227,8 +253,13 @@ describe('student integration tests', () => {
       console.log(error);
     }
 
-    // done();
-  }, 20000);
+    await deleteAttendance(attendanceId);
+    await deleteLecture(lectureId);
+    await deleteUser(studentId);
+    await deleteUser(teacherId);
+    await deleteCourse(courseId);
+    await deleteClass(classId);
+  }, 40000);
 
   afterAll(()=> {
       pool.end();
