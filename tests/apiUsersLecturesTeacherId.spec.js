@@ -47,10 +47,10 @@ describe('GET /api/users/lectures/:teacherId', () => {
 
     test("should get multiple lectures for a teacher", async () => {
         const now = new Date();
-        const after2hours = new Date();
-        after2hours.setHours(after2hours.getHours() + 2);
+        const after45Minutes = new Date();
+        after45Minutes.setMinutes(after45Minutes.getMinutes() + 45);
         const nowFormatted = formatDate(now);
-        const after2hoursFormatted = formatDate(after2hours);
+        const after2hoursFormatted = formatDate(after45Minutes);
         await saveCourseToDB(1, 'Development of Large Systems');
         await saveCourseToDB(2, 'Testing');
         const teacherId = await saveTeacherToDB();
@@ -66,7 +66,6 @@ describe('GET /api/users/lectures/:teacherId', () => {
                 const localDate1 = new Date(response.body[0].start_date_time); // we get time from server in UTC, new Date() converts it to local time
                 expect(formatDate(localDate1)).toEqual(nowFormatted);
                 expect(response.body[0].name).toEqual('Development of Large Systems');
-
                 expect(response.body[1].lecture_id).toEqual(lecture2.lecture_id);
                 const localDate2 = new Date(response.body[1].start_date_time);
                 expect(formatDate(localDate2)).toEqual(after2hoursFormatted);
