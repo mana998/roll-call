@@ -15,7 +15,7 @@ function requireAuth(req, res, next) {
 
   jwt.verify(token, JWT_SECRET, async (err, payload) => {
     if (err) {
-      return res.status(401).send({ error: 'Wrong token.' });
+      return res.status(401).send({ error: 'You must be logged in.' });
     }
 
     // decoded claims, sort of
