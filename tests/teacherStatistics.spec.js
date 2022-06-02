@@ -26,7 +26,6 @@ const truncateTables = () => {
 };
 
 describe('teacherStatistics test', () => {
-
     test("POST /api/users/teachers/attendance/:teacherId correct", async () => {
         await insertInitialData();
         const class_id = 1;
@@ -63,8 +62,9 @@ describe('teacherStatistics test', () => {
             }
         } catch (error) {
             throw(error);
+        } finally {
+            await truncateTables();
         }
-        await truncateTables();
     }, 20000);
 
      const testsFail = [
@@ -140,94 +140,121 @@ describe('teacherStatistics test', () => {
                 }
             } catch (error) {
                 throw(error);
+            } finally {
+                await truncateTables();
             }
-            //await deleteData();
         }, 20000);
-        await truncateTables();
     });
 
     afterAll(()=> {
         pool.end();
     });
 });
-/*
-function insertInitialData (){
-    return new Promise((resolve, reject) => {
-        pool.getConnection((err, db) => {
-            let query = `INSERT INTO classes (class_id, name) VALUES (1, 'SD22w');`;
-            db.query(query, (error, result, fields) => {
-                if (error) {
-                    reject(error);
-                } else {
-                    let query = `INSERT INTO users (user_id, first_name, last_name, email, user_role, password, class_id, date_of_birth) VALUES (1, "Kane", "Vasquez", "v-kane@yahoo.com", "TEACHER", "$2b$15$PGfdEXxNY2M.OSsh1mjIFuy9Tg32Z3Cc5QkKPGIW5f.DNVXpGYwOa", NULL, "1980-05-29"),
-                            (7, "Brenden", "Odom", "bodom9915@yahoo.net", "STUDENT", "$2b$15$PGfdEXxNY2M.OSsh1mjIFuy9Tg32Z3Cc5QkKPGIW5f.DNVXpGYwOa", 1, "2000-05-29"),
-                            (8, "Mira", "Mckay", "m-mckay5458@yahoo.net", "STUDENT", "$2b$15$PGfdEXxNY2M.OSsh1mjIFuy9Tg32Z3Cc5QkKPGIW5f.DNVXpGYwOa", 1, "2000-05-29");`;
-                        db.query(query, (error, result, fields) => {
-                        if (error) {
-                            reject(error);
-                        } else {
-                            let query = `INSERT INTO courses (course_id, name) VALUES (1, 'Development of Large Systems');`;
-                            db.query(query, (error, result, fields) => {
-                                if (error) {
-                                    reject(error);
-                                } else {
-                                    let query = `INSERT INTO lectures (lecture_id, course_id, teacher_id, start_date_time, class_id) VALUES
-                                        (1, 1, 1, "2022-03-03 8:30:00", 1),
-                                        (2, 1, 1, "2022-03-03 9:15:00", 1),      
-                                        (3, 1, 1, "2022-03-03 10:00:00", 1),      
-                                        (4, 1, 1, "2022-03-03 10:45:00", 1);`;
-                                    db.query(query, (error, result, fields) => {
-                                        if (error) {
-                                            reject(error);
-                                        } else {
-                                            let query = ` INSERT INTO attendance (user_id, lecture_id, is_attending) VALUES
-                                                (7, 1, 1), (7, 2, 1), (7, 3, 0), (7, 4, 0),
-                                                (8, 1, 0), (8, 2, 0), (8, 3, 1), (8, 4, 1);`;
-                                            db.query(query, (error, result, fields) => {
-                                                if (error) {
-                                                    reject(error);
-                                                } else {
-                                                    resolve(result);
-                                                }
-                                            });
-                                        }
-                                    });
-                                }
-                            });
-                        }
-                    });
-                }
-            });
-            db.release();
-        });
-    })
-}
-*/
 
-function insertInitialData (){
+async function insertInitialData (){
+    await addClass(1, 'SD22w');
+    await addUser(1, "Kane", "Vasquez", "v-kane@yahoo.com", "TEACHER", "$2b$15$PGfdEXxNY2M.OSsh1mjIFuy9Tg32Z3Cc5QkKPGIW5f.DNVXpGYwOa", '', "1980-05-29");
+    await addUser(7, "Brenden", "Odom", "bodom9915@yahoo.net", "STUDENT", "$2b$15$PGfdEXxNY2M.OSsh1mjIFuy9Tg32Z3Cc5QkKPGIW5f.DNVXpGYwOa", 1, "2000-05-29");
+    await addUser(8, "Mira", "Mckay", "m-mckay5458@yahoo.net", "STUDENT", "$2b$15$PGfdEXxNY2M.OSsh1mjIFuy9Tg32Z3Cc5QkKPGIW5f.DNVXpGYwOa", 1, "2000-05-29");
+    await addCourse(1, 'Development of Large Systems');
+    await addLecture(1, 1, 1, 1, "2022-03-03 8:30:00");
+    await addLecture(2, 1, 1, 1, "2022-03-03 9:15:00");
+    await addLecture(3, 1, 1, 1, "2022-03-03 10:00:00");
+    await addLecture(4, 1, 1, 1, "2022-03-03 10:45:00");
+    await addAttendance(7, 1, 1);
+    await addAttendance(7, 2, 1);
+    await addAttendance(7, 3, 0);
+    await addAttendance(7, 4, 0);
+    await addAttendance(8, 1, 0);
+    await addAttendance(8, 2, 0);
+    await addAttendance(8, 3, 1);
+    await addAttendance(8, 4, 1);
+}
+
+const addUser = (userId, firstName, lastName, email, userRole, password, classId, dateOfBirth) => {
+    return new Promise((resolve, reject) => {
+      pool.getConnection((err, db) => {
+        let params = [userId, firstName, lastName, email, userRole, password, classId, dateOfBirth]
+        let query = `INSERT INTO users (user_id, first_name, last_name, email, user_role, password, class_id, date_of_birth)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
+        if (!classId) {
+            query = `INSERT INTO users (user_id, first_name, last_name, email, user_role, password, class_id, date_of_birth)
+            VALUES (?, ?, ?, ?, ?, ?, NULL, ?);`;
+            params = [userId, firstName, lastName, email, userRole, password, dateOfBirth]
+        }
+        db.query(query, params, (error, result, fields) => {
+          if (error) {
+            reject(error);
+          }
+          resolve(result);
+        });
+        db.release();
+      });
+    });
+  };
+  
+const addClass = (classId, className) => {
     return new Promise((resolve, reject) => {
         pool.getConnection((err, db) => {
-            let query = `INSERT INTO classes (class_id, name) VALUES (1, 'SD22w');
-            INSERT INTO users (user_id, first_name, last_name, email, user_role, password, class_id, date_of_birth) VALUES (1, "Kane", "Vasquez", "v-kane@yahoo.com", "TEACHER", "$2b$15$PGfdEXxNY2M.OSsh1mjIFuy9Tg32Z3Cc5QkKPGIW5f.DNVXpGYwOa", NULL, "1980-05-29"),
-                (7, "Brenden", "Odom", "bodom9915@yahoo.net", "STUDENT", "$2b$15$PGfdEXxNY2M.OSsh1mjIFuy9Tg32Z3Cc5QkKPGIW5f.DNVXpGYwOa", 1, "2000-05-29"),
-                (8, "Mira", "Mckay", "m-mckay5458@yahoo.net", "STUDENT", "$2b$15$PGfdEXxNY2M.OSsh1mjIFuy9Tg32Z3Cc5QkKPGIW5f.DNVXpGYwOa", 1, "2000-05-29");
-            INSERT INTO courses (course_id, name) VALUES (1, 'Development of Large Systems');
-            INSERT INTO lectures (lecture_id, course_id, teacher_id, start_date_time, class_id) VALUES
-                (1, 1, 1, "2022-03-03 8:30:00", 1),
-                (2, 1, 1, "2022-03-03 9:15:00", 1),      
-                (3, 1, 1, "2022-03-03 10:00:00", 1),      
-                (4, 1, 1, "2022-03-03 10:45:00", 1);
-            INSERT INTO attendance (user_id, lecture_id, is_attending) VALUES
-                (7, 1, 1), (7, 2, 1), (7, 3, 0), (7, 4, 0),
-                (8, 1, 0), (8, 2, 0), (8, 3, 1), (8, 4, 1);`;
-            db.query(query, (error, result, fields) => {
+            let query = `INSERT INTO classes (class_id, name) 
+                VALUES(?, ?);`;
+            db.query(query, [classId, className], (error, result, fields) => {
                 if (error) {
                     reject(error);
-                } else {
-                        resolve(result);
                 }
+                resolve(result);
             });
             db.release();
         });
-    })
-}
+    });
+};
+  
+  const addCourse = (courseId, coursName) => {
+    return new Promise((resolve, reject) => {
+      pool.getConnection((err, db) => {
+        let query = `INSERT INTO courses (course_id, name) 
+            VALUES(?, ?);`;
+        db.query(query, [courseId, coursName], (error, result, fields) => {
+          if (error) {
+            reject(error);
+          }
+          resolve(result);
+        });
+        db.release();
+      });
+    });
+  };
+  
+  const addLecture = (lectureId, teacherId, courseId, classId, startDateTime) => {  
+    return new Promise((resolve, reject) => {
+      pool.getConnection((err, db) => {
+        let query =
+          `INSERT INTO lectures (lecture_id, course_id, teacher_id, start_date_time, class_id)
+            VALUES(?, ?, ?, ?, ?);`;
+        db.query(query, [lectureId, teacherId, courseId, startDateTime, classId], (error, result, fields) => {
+          if (error) {
+            reject(error);
+          }
+          resolve(result);
+        });
+        db.release();
+      });
+    });
+  };
+  
+  const addAttendance = (studentId, lectureId, isAttending) => {
+    return new Promise((resolve, reject) => {
+      pool.getConnection((err, db) => {
+        let query =
+          `INSERT INTO attendance (user_id, lecture_id, is_attending)
+            VALUES(?, ?, ?);`;
+        db.query(query, [studentId, lectureId, isAttending], (error, result, fields) => {
+          if (error) {
+            reject(error);
+          }
+          resolve(result);
+        });
+        db.release();
+      });
+    });
+  };

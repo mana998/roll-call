@@ -4,7 +4,7 @@
   "description": "Mandatory 2 for class development of large systems",
   "main": "index.js",
   "scripts": {
-    "test": "cross-env ENV=test jest --verbose --coverage --forceExit",
+    "test": "cross-env ENV=test jest --verbose --coverage --runInBand --forceExit",
     "start": "node index.js",
     "dev": "nodemon index.js",
     "lint": "eslint . --fix",

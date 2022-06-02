@@ -57,7 +57,7 @@ describe('login test', () => {
                 }).catch( (e) => {
                     throw e.stack;
                 });
-                await truncateTables();
+            await truncateTables();
         }, 20000);
     });
 
