@@ -41,7 +41,7 @@ app.use(userRoutes.router);
 const server = require(process.env.HTTP).createServer(app);
 const io = require('socket.io')(server, {
   cors: {
-    origin: process.env.BACKEND_URL
+    origin: process.env.FRONTEND_URL
   }
 });
 
