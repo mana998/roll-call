@@ -5,7 +5,7 @@ const saveTeacherToDB = () => {
         pool.getConnection((err, db) => {
             let query =
                 'INSERT INTO users (first_name, last_name, email, user_role, password, class_id, date_of_birth) ' +
-                'VALUES ("Kane", "Vasquez", "tester@yhoo.com", "TEACHER", "$2b$15$PGfdEXxNY2M.OSsh1mjIFuy9Tg32Z3Cc5QkKPGIW5f.DNVXpGYwOa", NULL, "1996-10-10");';
+                'VALUES ("Dimitrios", "Gkiokas", "dimi1@gmail.com", "TEACHER", "$2b$15$uC0sNjstRkK/EBRnCLFkWujCEL.grKhk8NdLSFIccXwVeCR/o6lde", NULL, "1996-10-10");';
             db.query(query, (error, result, fields) => {
                 if (error) {
                     reject(error);
