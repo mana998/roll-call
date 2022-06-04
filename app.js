@@ -16,7 +16,7 @@ const authRoutes = require('./routes/auth.js');
 // Cross Origin Resource Sharing
 app.use(credentials);
 
-app.use(cors({ origin: ['http://localhost:3000'], credentials: true }));
+app.use(cors({ origin: [process.env.FRONTEND_URL], credentials: true }));
 
 // allows to recognise incoming object as json object
 app.use(express.json());
@@ -41,7 +41,7 @@ app.use(userRoutes.router);
 const server = require('http').createServer(app);
 const io = require('socket.io')(server, {
   cors: {
-    origin: 'http://localhost:3000'
+    origin: process.env.BACKEND_URL
   }
 });
 
@@ -86,7 +86,7 @@ io.on('connection', (socket) => {
   async function studentAttendsAndJoins(data, lectureId) {
     //student part of the room - join room and update attendance
     socket.join(`${data.code}-${lectureId.lecture_id}`);
-    let url = `http://localhost:8080/api/attendance/${lectureId.attendance_id}`;
+    let url = `${process.env.BACKEND_URL}/api/attendance/${lectureId.attendance_id}`;
     response = await fetch(url, {
       method: 'patch'
     });
