@@ -38,7 +38,7 @@ app.use(requireAuth);
 app.use(userRoutes.router);
 
 // create server and set up the sockets on the server
-const server = require('http').createServer(app);
+const server = require(process.env.HTTP).createServer(app);
 const io = require('socket.io')(server, {
   cors: {
     origin: process.env.BACKEND_URL
