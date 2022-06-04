@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "cross-env ENV=test jest --verbose --coverage --runInBand --forceExit",
-    "start": "node index.js",
+    "start": "mpnode index.js",
     "dev": "nodemon index.js",
     "lint": "eslint . --fix",
     "sonar": "npx sonar-scanner"
@@ -35,13 +35,6 @@
     "node-fetch": "^2.6.6",
     "socket.io": "^4.5.0",
     "supertest": "^6.2.3"
-  },
-  "devDependencies": {
-    "cross-env": "^7.0.3",
-    "jest": "^28.1.0",
-    "nodemon": "^2.0.16",
-    "supertest": "^6.2.3",
-    "socket.io": "^4.5.0"
   },
   "jest": {
     "testEnvironment": "node",
