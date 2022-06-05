@@ -57,11 +57,12 @@ io.on('connection', (socket) => {
   }
 
   function handleDeleteCode(data) {
-    io.sockets.adapter.rooms
-      .get(`${data.code}-${data.lectureId}`)
-      .forEach(function (client) {
+    const sockets = io.sockets.adapter.rooms.get(`${data.code}-${data.lectureId}`);
+    if (sockets && sockets.length) {
+      sockets.forEach(function (client) {
         io.sockets.sockets.get(client).leave(`${data.code}-${data.lectureId}`);
       });
+    }
   }
 
   async function handleAttendLecture(data) {
@@ -80,6 +81,8 @@ io.on('connection', (socket) => {
       } else {
         socket.emit('joinFailed');
       }
+    } else {
+      socket.emit('joinFailed');
     }
   }
 
