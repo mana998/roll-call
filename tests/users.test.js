@@ -15,49 +15,48 @@ describe(`calculate students' overall attendance`, () => {
   });
 
   // cases that should succeed
-  let expectedSet1 = [];
-  expectedSet1['john_doe@gmail.com'] = {
-    firstName: 'John',
-    lastName: 'Doe',
-    attendance: '100.00'
+  let expectedSet1 = {
+    "john_doe@gmail.com": {
+      firstName: 'John',
+      lastName: 'Doe',
+      attendance: '100.00'
+    },
+    "jane_doe@gmail.com": {
+      firstName: 'Jane',
+      lastName: 'Doe',
+      attendance: '100.00'
+    }
+  }
+
+  let expectedSet2 = {
+    "john_doe@gmail.com": {
+      firstName: 'John',
+      lastName: 'Doe',
+      attendance: '66.67'
+    },
+    "jane_doe@gmail.com": {
+      firstName: 'Jane',
+      lastName: 'Doe',
+      attendance: '50.00'
+    }
   };
 
-  expectedSet1['jane_doe@gmail.com'] = {
-    firstName: 'Jane',
-    lastName: 'Doe',
-    attendance: '100.00'
-  };
-
-  let expectedSet2 = [];
-  expectedSet2['john_doe@gmail.com'] = {
-    firstName: 'John',
-    lastName: 'Doe',
-    attendance: '66.67'
-  };
-
-  expectedSet2['jane_doe@gmail.com'] = {
-    firstName: 'Jane',
-    lastName: 'Doe',
-    attendance: '50.00'
-  };
-
-  let expectedSet3 = [];
-  expectedSet3['john_doe@gmail.com'] = {
-    firstName: 'John',
-    lastName: 'Doe',
-    attendance: '0.00'
-  };
-
-  expectedSet3['jane_doe@gmail.com'] = {
-    firstName: 'Jane',
-    lastName: 'Doe',
-    attendance: '0.00'
-  };
-
-  expectedSet3['carl_nielsen@gmail.com'] = {
-    firstName: 'Carl',
-    lastName: 'Nielsen',
-    attendance: '0.00'
+  let expectedSet3 = {
+    "john_doe@gmail.com": {
+      firstName: 'John',
+      lastName: 'Doe',
+      attendance: '0.00'
+    },
+    "jane_doe@gmail.com": {
+      firstName: 'Jane',
+      lastName: 'Doe',
+      attendance: '0.00'
+    },
+    "carl_nielsen@gmail.com": {
+      firstName: 'Carl',
+      lastName: 'Nielsen',
+      attendance: '0.00'
+    }
   };
 
   it.each([
@@ -190,12 +189,16 @@ describe(`check student age`, () => {
     expect(checkAge(date)).toBe(false);
   });
 
+  test('should return true for valid string pattern', () => {
+    expect(checkAge('2000-03-05')).toBe(true);
+  });
+
   it.each([
     [null, 'Invalid format'],
     [[], 'Invalid format'],
     [7671, 'Invalid format'],
-    ['string', 'Invalid format'],
-    [{}, 'Invalid format']
+    [{}, 'Invalid format'],
+    ['string', 'Invalid string pattern for date'],  //string with invalid format,
   ])('should throw invalid format error for %s argument', (arg, expected) => {
     expect(function () {
       checkAge(arg);

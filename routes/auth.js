@@ -47,22 +47,18 @@ router.get('/refresh', (req, res) => {
 });
 
 router.post('/api/users/register', (req, res) => {
-  console.log('here', req.body)
   const { email, password, firstName, lastName, dateOfBirth, userRole, classId } =
     req.body;
   try {
-    console.log(userRole)
     if (!userRole || (userRole !== 'TEACHER' && userRole !== 'STUDENT')) {
-      console.log('incorrect role');
       res.send({
         message: 'Please choose the role: TEACHER or STUDENT.'
       });
       return;
     } else if (userRole === 'STUDENT') {
-      console.log('check age');
       checkAge(dateOfBirth);
     }
-    
+
     checkEmail(email);
     checkNameAndSurname(firstName, lastName);
     bcrypt.hash(password, saltRounds, (error, hash) => {
@@ -102,12 +98,10 @@ router.post('/api/users/register', (req, res) => {
                   httpOnly: true,
                   maxAge: 24 * 60 * 60 * 1000 // 1 day
                 });
-                console.log('success')
                 res
                   .status(202)
                   .send({message: `User ${firstName} ${lastName} is registered & logged in!`});
               } else {
-                console.log('else');
                 res.send({
                   message: 'Something went wrong'
                 });
@@ -226,11 +220,22 @@ router.get('/logout', (req, res) => {
 
 // check if student is above 19 years old
 const checkAge = (dateOfBirth) => {
-  console.log('in date');
-  if (Object.prototype.toString.call(dateOfBirth) === '[object String]') {
-    console.log('succeeeess');
+  const dateOfBirthType = Object.prototype.toString.call(dateOfBirth);
+
+  if (dateOfBirthType === '[object Date]' || dateOfBirthType === '[object String]') {
+
+    console.log(dateOfBirth, dateOfBirthType);
+    dateOfBirth = Date.parse(dateOfBirth);    //check for invalid date pattern if string
+    console.log(dateOfBirth);
+
+    if(isNaN(dateOfBirth)) {
+      throw new Error('Invalid string pattern for date');
+    }
+
+
     let pastDate = new Date();
     pastDate.setFullYear(pastDate.getFullYear() - 19);
+    console.log(pastDate);
     return pastDate >= dateOfBirth;
   } else {
     throw new Error('Invalid format');

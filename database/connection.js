@@ -14,7 +14,7 @@ const config = {
   port: 3306,
   connectionLimit: 10,
   multipleStatements: test === 'test',
-  timezone: 'UTC'
+  timezone: '+00:00'
   // ssl: { ca: cert }
 };
 
