@@ -241,6 +241,7 @@ describe('check user names', () => {
       ['Mary Kate', 'Olsen'],
       ['Kate', 'Sue-Williams'],
       ['Brian', "Wells-O'Shaugnessy"],
+      ["A-random-name hmm'what-could go'wrong", 'This-is-still-good-right-on-edge'],
       ["A-random-name hmm'what-could go'wrong", 'Mhm but-still-good']
     ])('should return true for %s %s', (firstName, lastName) => {
       expect(checkNameAndSurname(firstName, lastName)).toBe(true);
@@ -255,6 +256,11 @@ describe('check user names', () => {
       [
         "A-random-name hmm'what-could go'wrong",
         'This-time-it-is-absolutely-certain-that-it-is-way-too-long',
+        'Expected length exceeded'
+      ],
+      [
+        "A-random-name hmm'what-could go'wrong",
+        'This-is-just-right-over-thee-edge',
         'Expected length exceeded'
       ]
     ])('should throw error for %s %s', (firstName, lastName, expected) => {
