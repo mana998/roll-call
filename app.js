@@ -16,7 +16,9 @@ const authRoutes = require('./routes/auth.js');
 // Cross Origin Resource Sharing
 app.use(credentials);
 
-app.use(cors({ origin: [process.env.FRONTEND_URL], credentials: true }));
+app.use(
+  cors({ origin: [process.env.BACKEND_URL, process.env.FRONTEND_URL], credentials: true })
+);
 
 // allows to recognise incoming object as json object
 app.use(express.json());
@@ -41,7 +43,7 @@ app.use(userRoutes.router);
 const server = require('http').createServer(app);
 const io = require('socket.io')(server, {
   cors: {
-    origin: process.env.BACKEND_URL
+    origin: process.env.FRONTEND_URL
   }
 });
 
