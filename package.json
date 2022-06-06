@@ -27,6 +27,8 @@
     "cors": "^2.8.5",
     "cross-env": "^7.0.3",
     "dotenv": "^16.0.0",
+    "eslint": "^8.17.0",
+    "eslint-config-airbnb": "^19.0.4",
     "eslint-plugin-jest": "^26.2.2",
     "express": "^4.17.3",
     "express-session": "^1.17.2",

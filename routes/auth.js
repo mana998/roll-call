@@ -1,19 +1,19 @@
 const router = require('express').Router();
-const { pool } = require('../database/connection');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const { pool } = require('../database/connection');
 
 const saltRounds = 15;
 
 router.get('/refresh', (req, res) => {
-  const cookies = req.cookies;
+  const { cookies } = req;
 
   if (!cookies?.session) return res.sendStatus(401);
   const refreshToken = cookies.session;
 
   try {
     pool.getConnection((err, db) => {
-      let query = 'SELECT * FROM users WHERE refresh_token = ?';
+      const query = 'SELECT * FROM users WHERE refresh_token = ?';
       db.query(query, [refreshToken], (error, result, fields) => {
         if (result[0]) {
           jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, payload) => {
@@ -45,15 +45,16 @@ router.get('/refresh', (req, res) => {
 });
 
 router.post('/api/users/register', (req, res) => {
-  const { email, password, firstName, lastName, dateOfBirth, userRole, classId } =
-    req.body;
+  const {
+    email, password, firstName, lastName, dateOfBirth, userRole, classId
+  } = req.body;
   try {
     if (!userRole || (userRole !== 'TEACHER' && userRole !== 'STUDENT')) {
       res.send({
         message: 'Please choose the role: TEACHER or STUDENT.'
       });
       return;
-    } else if (userRole === 'STUDENT') {
+    } if (userRole === 'STUDENT') {
       checkAge(dateOfBirth);
     }
 
@@ -62,8 +63,7 @@ router.post('/api/users/register', (req, res) => {
     bcrypt.hash(password, saltRounds, (error, hash) => {
       if (!error) {
         pool.getConnection((err, db) => {
-          let query =
-            'INSERT INTO users (user_role, email, password, first_name, last_name, date_of_birth, class_id) VALUES (?, ?, ?, ?, ?, ?, ?)';
+          const query = 'INSERT INTO users (user_role, email, password, first_name, last_name, date_of_birth, class_id) VALUES (?, ?, ?, ?, ?, ?, ?)';
 
           db.query(
             query,
@@ -130,7 +130,7 @@ router.post('/api/users/login', (req, res) => {
   }
   try {
     pool.getConnection((err, db) => {
-      let query = 'SELECT * FROM users WHERE email = ?';
+      const query = 'SELECT * FROM users WHERE email = ?';
       db.query(query, [email], (error, result, fields) => {
         if (result && result.length) {
           bcrypt.compare(password, result[0].password, (error, match) => {
@@ -152,7 +152,7 @@ router.post('/api/users/login', (req, res) => {
               });
 
               // store refresh token with the user
-              let query = 'UPDATE users SET refresh_token = ? WHERE email = ?';
+              const query = 'UPDATE users SET refresh_token = ? WHERE email = ?';
               db.query(query, [refreshToken, email], (error, result, fields) => {
                 if (result && result.affectedRows) {
                   res.cookie('session', refreshToken, {
@@ -182,14 +182,14 @@ router.post('/api/users/login', (req, res) => {
 });
 
 router.get('/logout', (req, res) => {
-  const cookies = req.cookies;
+  const { cookies } = req;
   if (!cookies?.session) return res.sendStatus(204);
   const refreshToken = cookies.session;
 
   try {
     pool.getConnection((err, db) => {
       // check if refresh token is inside gb
-      let query = 'SELECT * FROM users WHERE refresh_token = ?';
+      const query = 'SELECT * FROM users WHERE refresh_token = ?';
       db.query(query, [refreshToken], (error, result, fields) => {
         if (!result[0]) {
           res.clearCookie('session', { httpOnly: true, sameSite: 'none', secure: true });
@@ -197,7 +197,7 @@ router.get('/logout', (req, res) => {
         }
 
         // delete refresh token from db
-        let query = 'UPDATE users SET refresh_token = ? WHERE email = ?';
+        const query = 'UPDATE users SET refresh_token = ? WHERE email = ?';
         db.query(query, ['', result[0].email], (error, result, fields) => {
           if (result && result.affectedRows) {
             res.clearCookie('session', {
@@ -221,41 +221,38 @@ const checkAge = (dateOfBirth) => {
   const dateOfBirthType = Object.prototype.toString.call(dateOfBirth);
 
   if (dateOfBirthType === '[object Date]' || dateOfBirthType === '[object String]') {
-    dateOfBirth = Date.parse(dateOfBirth); //check for invalid date pattern if string
+    dateOfBirth = Date.parse(dateOfBirth); // check for invalid date pattern if string
 
     if (isNaN(dateOfBirth)) {
       throw new Error('Invalid string pattern for date');
     }
 
-    let pastDate = new Date();
+    const pastDate = new Date();
     pastDate.setFullYear(pastDate.getFullYear() - 19);
     return pastDate >= dateOfBirth;
-  } else {
-    throw new Error('Invalid format');
   }
+  throw new Error('Invalid format');
 };
 
 const checkEmail = (email) => {
   const mailFormat = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
   if (email.match(mailFormat)) {
     return true;
-  } else {
-    throw new Error('Invalid format');
   }
+  throw new Error('Invalid format');
 };
 
 const checkNameAndSurname = (firstName, lastName) => {
-  const nameFormat = /^\s*([A-Za-z]{1,}([\.,] |[-']| ))+[A-Za-z]+\.?\s*$/; //english ones, for now
-  const fullName = firstName + ' ' + lastName;
+  const nameFormat = /^\s*([A-Za-z]{1,}([\.,] |[-']| ))+[A-Za-z]+\.?\s*$/; // english ones, for now
+  const fullName = `${firstName} ${lastName}`;
 
   if (fullName.match(nameFormat)) {
     if (fullName.length > 70) {
       throw new Error('Expected length exceeded');
     }
     return true;
-  } else {
-    throw new Error('Invalid format');
   }
+  throw new Error('Invalid format');
 };
 
 module.exports = {

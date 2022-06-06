@@ -13,10 +13,11 @@
         "ecmaVersion": "latest"
     },
     "rules": {
-        "max-len": ["error", { "code": 160 }],
+        "max-len": ["error", { "code": 250 }],
         "no-plusplus": "off",
         "no-case-declarations": "off",
-        "linebreak-style": "off"
+        "linebreak-style": "off",
+        "comma-dangle": "off"
     }
 }
 

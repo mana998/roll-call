@@ -2,11 +2,11 @@ const { pool } = require('../database/connection');
 
 const getLecturesOfToday = async (req, res) => {
   await pool.getConnection((err, db) => {
-    const now = new Date(); //'2022-05-03 8:39:00'
+    const now = new Date(); // '2022-05-03 8:39:00'
     const oldDate = new Date(now);
-    //10 minutes ago
+    // 10 minutes ago
     oldDate.setMinutes(now.getMinutes() - 10);
-    let query = `SELECT lectures.lecture_id, attendance.attendance_id
+    const query = `SELECT lectures.lecture_id, attendance.attendance_id
                         FROM lectures
                         JOIN attendance ON attendance.lecture_id = lectures.lecture_id 
                         WHERE attendance.user_id = ? AND 
@@ -17,7 +17,7 @@ const getLecturesOfToday = async (req, res) => {
         for (const r of result) {
           lectures.push(r);
         }
-        res.send({ lectures: lectures });
+        res.send({ lectures });
       } else {
         res.send({
           message: 'Something went wrong'
@@ -30,7 +30,7 @@ const getLecturesOfToday = async (req, res) => {
 
 const attendLecture = async (req, res) => {
   await pool.getConnection((err, db) => {
-    let query = `UPDATE attendance SET is_attending = 1 WHERE attendance_id = ?;`;
+    const query = 'UPDATE attendance SET is_attending = 1 WHERE attendance_id = ?;';
     db.query(query, [req.params.attendanceId], (error, result, fields) => {
       if (result && result.affectedRows === 1) {
         res.send({

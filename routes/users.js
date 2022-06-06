@@ -4,33 +4,30 @@ const { type } = require('express/lib/response');
 const { pool } = require('../database/connection');
 
 async function getTeacher(db, teacher_id) {
-  const result = await new Promise((resolve, reject) =>
-    db.query(
-      'SELECT users.first_name, users.last_name FROM users  where users.user_id = ?;',
-      teacher_id,
-      (error, result, fields) => {
-        if (error) {
-          reject(error);
-        } else {
-          resolve(result);
-        }
+  const result = await new Promise((resolve, reject) => db.query(
+    'SELECT users.first_name, users.last_name FROM users  where users.user_id = ?;',
+    teacher_id,
+    (error, result, fields) => {
+      if (error) {
+        reject(error);
+      } else {
+        resolve(result);
       }
-    )
-  );
+    }
+  ));
   return result;
 }
 
 // get attendance for student by student id
 router.get('/api/users/students/attendance/:studentId', (req, res) => {
   pool.getConnection((err, db) => {
-    let query =
-      'SELECT users.first_name, users.last_name, lectures.start_date_time, lectures.teacher_id, classes.name, attendance.is_attending, courses.name AS courseName from users join attendance on users.user_id = attendance.user_id join lectures on attendance.lecture_id = lectures.lecture_id join courses on courses.course_id = lectures.course_id join classes on classes.class_id = lectures.class_id where users.user_id = ?;';
+    const query = 'SELECT users.first_name, users.last_name, lectures.start_date_time, lectures.teacher_id, classes.name, attendance.is_attending, courses.name AS courseName from users join attendance on users.user_id = attendance.user_id join lectures on attendance.lecture_id = lectures.lecture_id join courses on courses.course_id = lectures.course_id join classes on classes.class_id = lectures.class_id where users.user_id = ?;';
     db.query(query, [req.params.studentId], async (error, result, fields) => {
       if (result && result.length) {
         const attendance = [];
         for (const r of result) {
-          //create new object
-          let entry = {
+          // create new object
+          const entry = {
             firstName: r.first_name,
             lastName: r.last_name,
             classStartDate: r.start_date_time,
@@ -59,8 +56,8 @@ router.get('/api/users/students/attendance/:studentId', (req, res) => {
 });
 
 function handleStudentStats(attendance) {
-  if (typeof (attendance) != 'object') { throw('Wrong data type'); }
-  if (attendance.length === 0) { throw('Empty Array'); }
+  if (typeof (attendance) !== 'object') { throw ('Wrong data type'); }
+  if (attendance.length === 0) { throw ('Empty Array'); }
 
   const userStats = {
     firstName: attendance[0].firstName,
@@ -89,8 +86,7 @@ function handleStudentStats(attendance) {
 // show number of students in the class
 router.get('/api/users/students/:classId', (req, res) => {
   pool.getConnection((err, db) => {
-    let query =
-      'SELECT COUNT(users.email) AS studentCount from users join classes on users.class_id = classes.class_id where classes.class_id = ?;';
+    const query = 'SELECT COUNT(users.email) AS studentCount from users join classes on users.class_id = classes.class_id where classes.class_id = ?;';
     db.query(query, [req.params.classId], async (error, result, fields) => {
       if (result && result.length) {
         res.send(result[0]);
@@ -104,15 +100,14 @@ router.get('/api/users/students/:classId', (req, res) => {
   });
 });
 
-//get today's lectures for teacher with course name and time
+// get today's lectures for teacher with course name and time
 router.get('/api/users/lectures/:teacherId', (req, res) => {
   pool.getConnection((err, db) => {
-    var today = new Date();
-    var dd = String(today.getDate()).padStart(2, '0');
-    var mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
-    var yyyy = today.getFullYear();
-    let query =
-      'SELECT lectures.lecture_id, courses.name, lectures.start_date_time from courses join lectures on courses.course_id = lectures.course_id where lectures.teacher_id = ? AND DATE(lectures.start_date_time) = ?;';
+    const today = new Date();
+    const dd = String(today.getDate()).padStart(2, '0');
+    const mm = String(today.getMonth() + 1).padStart(2, '0'); // January is 0!
+    const yyyy = today.getFullYear();
+    const query = 'SELECT lectures.lecture_id, courses.name, lectures.start_date_time from courses join lectures on courses.course_id = lectures.course_id where lectures.teacher_id = ? AND DATE(lectures.start_date_time) = ?;';
     db.query(
       query,
       [req.params.teacherId, `${yyyy}-${mm}-${dd}`],
@@ -133,8 +128,7 @@ router.get('/api/users/lectures/:teacherId', (req, res) => {
 // get all classes and courses combinations for teacher statistics dropdown
 router.get('/api/users/classes/courses/all/:teacherId', (req, res) => {
   pool.getConnection((err, db) => {
-    let query =
-      'SELECT DISTINCT courses.name AS courseName, classes.name AS className, courses.course_id, classes.class_id from courses join lectures on courses.course_id = lectures.course_id join classes on classes.class_id = lectures.class_id where lectures.teacher_id = ?;';
+    const query = 'SELECT DISTINCT courses.name AS courseName, classes.name AS className, courses.course_id, classes.class_id from courses join lectures on courses.course_id = lectures.course_id join classes on classes.class_id = lectures.class_id where lectures.teacher_id = ?;';
     db.query(query, [req.params.teacherId], async (error, result, fields) => {
       if (result) {
         res.send(result);
@@ -151,7 +145,7 @@ router.get('/api/users/classes/courses/all/:teacherId', (req, res) => {
 // get attendance for teacher page by teacher id
 router.post('/api/users/teachers/attendance/:teacherId', (req, res) => {
   pool.getConnection((err, db) => {
-    let query = `SELECT users.first_name, users.last_name, users.email, lectures.start_date_time, attendance.is_attending
+    const query = `SELECT users.first_name, users.last_name, users.email, lectures.start_date_time, attendance.is_attending
                     FROM users 
                     JOIN attendance ON users.user_id = attendance.user_id 
                     JOIN lectures ON attendance.lecture_id = lectures.lecture_id 
@@ -167,7 +161,7 @@ router.post('/api/users/teachers/attendance/:teacherId', (req, res) => {
         if (result && result.length) {
           const attendance = [];
           for (const r of result) {
-            //create new object
+            // create new object
             attendance.push({
               firstName: r.first_name,
               lastName: r.last_name,
@@ -183,9 +177,9 @@ router.post('/api/users/teachers/attendance/:teacherId', (req, res) => {
             new Date(0)
           );
           let oldDate = new Date(date);
-          //get date one month ago
+          // get date one month ago
           oldDate.setMonth(date.getMonth() - 1);
-          //set to midnight
+          // set to midnight
           oldDate.setHours(0, 0, 0, 0);
           const monthlyAttendance = calculateClassAttendanceBetweenDates(
             attendance,
@@ -193,9 +187,9 @@ router.post('/api/users/teachers/attendance/:teacherId', (req, res) => {
             oldDate
           );
           oldDate = new Date(date);
-          //get date one month ago
+          // get date one month ago
           oldDate.setDate(date.getDate() - 7);
-          //set to midnight
+          // set to midnight
           oldDate.setHours(0, 0, 0, 0);
           const weeklyAttendance = calculateClassAttendanceBetweenDates(
             attendance,
@@ -223,16 +217,16 @@ router.post('/api/users/teachers/attendance/:teacherId', (req, res) => {
 function calculateClassAttendanceBetweenDates(attendance, date, oldDate) {
   let attending = 0;
   let notAttending = 0;
-  if (attendance.length === 0 ) { throw('Empty array'); }
+  if (attendance.length === 0) { throw ('Empty array'); }
 
-  if (typeof (date) != 'object' || typeof (oldDate) != 'object') { throw('Parameters are incorrect'); }
+  if (typeof (date) !== 'object' || typeof (oldDate) !== 'object') { throw ('Parameters are incorrect'); }
 
   attendance.map((user) => {
     if (user.classStartDate <= date && user.classStartDate >= oldDate) {
       user.isAttending ? attending++ : notAttending++;
     }
   });
-  const maxAttendance = attending + notAttending || 1; //avoid division by 0
+  const maxAttendance = attending + notAttending || 1; // avoid division by 0
   return Number.parseFloat((attending / maxAttendance) * 100).toFixed(2);
 }
 
@@ -258,8 +252,7 @@ function calculateStudentsAttendance(attendance) {
   }
 
   Object.keys(userAttendance).forEach((key) => {
-    if (userAttendance[key][0] === 0 || !userAttendance[key][0])
-      userAttendance[key][0] = 1; //avoid division by 0
+    if (userAttendance[key][0] === 0 || !userAttendance[key][0]) userAttendance[key][0] = 1; // avoid division by 0
     userAttendance[key] = {
       firstName: userAttendance[key][2],
       lastName: userAttendance[key][3],
@@ -273,8 +266,8 @@ function calculateStudentsAttendance(attendance) {
 }
 
 module.exports = {
-    router,
-    handleStudentStats,
-    calculateClassAttendanceBetweenDates,
+  router,
+  handleStudentStats,
+  calculateClassAttendanceBetweenDates,
   calculateStudentsAttendance
 };

@@ -1,21 +1,21 @@
 const { checkAge, checkEmail, checkNameAndSurname } = require('../routes/auth');
 
-describe(`check student age`, () => {
+describe('check student age', () => {
   test('should return true for value within boundary', () => {
     expect(checkAge(new Date('2000-12-03'))).toBe(true);
   });
 
   test('should return true for valid upper boundary', () => {
-    let date = new Date();
-    let pastYear = new Date().getFullYear() - 19;
+    const date = new Date();
+    const pastYear = new Date().getFullYear() - 19;
     date.setFullYear(pastYear);
 
     expect(checkAge(date)).toBe(true);
   });
 
   test('should return false for invalid upper boundary', () => {
-    let date = new Date();
-    let pastYear = new Date().getFullYear() - 19;
+    const date = new Date();
+    const pastYear = new Date().getFullYear() - 19;
     date.setFullYear(pastYear);
     date.setDate(date.getDate() + 1);
 
@@ -31,9 +31,9 @@ describe(`check student age`, () => {
     [[], 'Invalid format'],
     [7671, 'Invalid format'],
     [{}, 'Invalid format'],
-    ['string', 'Invalid string pattern for date'] //string with invalid format,
+    ['string', 'Invalid string pattern for date'] // string with invalid format,
   ])('should throw invalid format error for %s argument', (arg, expected) => {
-    expect(function () {
+    expect(() => {
       checkAge(arg);
     }).toThrow(expected);
   });
@@ -59,7 +59,7 @@ describe('check user email', () => {
       ['@gmail.com', 'Invalid format'],
       ['DROP DATABASE@gmail.com', 'Invalid format']
     ])('should throw error for %s', (arg, expected) => {
-      expect(function () {
+      expect(() => {
         checkEmail(arg);
       }).toThrow(expected);
     });
@@ -97,7 +97,7 @@ describe('check user names', () => {
         'Expected length exceeded'
       ]
     ])('should throw error for %s %s', (firstName, lastName, expected) => {
-      expect(function () {
+      expect(() => {
         checkNameAndSurname(firstName, lastName);
       }).toThrow(expected);
     });
