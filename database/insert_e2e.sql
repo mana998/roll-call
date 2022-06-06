@@ -34,9 +34,11 @@ INSERT INTO lectures (lecture_id, course_id, teacher_id, start_date_time, class_
 (9, 1, 1, DATE_ADD(DATE_ADD(now(),interval 2 hour), INTERVAL 2 DAY), 1),
 (10, 1, 1, DATE_ADD(DATE_ADD(now(),interval 2 hour), INTERVAL 3 DAY), 1),
 (11, 1, 1, DATE_ADD(DATE_ADD(now(),interval 2 hour), INTERVAL 4 DAY), 1),
-(12, 1, 1, DATE_ADD(DATE_ADD(now(),interval 2 hour), INTERVAL 5 DAY), 1);
+(12, 1, 1, DATE_ADD(DATE_ADD(now(),interval 2 hour), INTERVAL 5 DAY), 1),
+(13, 1, 1, now(), 1);
 
 INSERT INTO attendance (user_id, lecture_id, is_attending) VALUES
 (2, 1, 1), (2, 2, 1), (2, 3, 1), (2, 4, 1), (2, 5, 1), (2, 6, 1),
 (3, 1, 1), (3, 2, 1), (3, 3, 1), (3, 4, 0), (3, 5, 0), (3, 6, 0),
-(4, 1, 0), (4, 2, 0), (4, 3, 0), (4, 4, 0), (4, 5, 0), (4, 6, 0);
+(4, 1, 0), (4, 2, 0), (4, 3, 0), (4, 4, 0), (4, 5, 0), (4, 6, 0),
+(2, 13, 0), (4, 13, 0);

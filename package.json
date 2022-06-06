@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "cross-env ENV=test jest --verbose --coverage --runInBand --forceExit",
-    "start-e2e": "cross-env ENV=test node index.js",
+    "start-e2e": "cross-env ENV=e2e node index.js",
     "start": "node index.js",
     "dev": "nodemon index.js",
     "lint": "eslint . --fix",
