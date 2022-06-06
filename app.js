@@ -16,7 +16,7 @@ const authRoutes = require('./routes/auth.js');
 // Cross Origin Resource Sharing
 app.use(credentials);
 
-app.use(cors({ origin: ['http://localhost:3000'], credentials: true }));
+app.use(cors({ origin: process.env.FRONTEND_URL, credentials: true }));
 
 // allows to recognise incoming object as json object
 app.use(express.json());
@@ -38,10 +38,10 @@ app.use(requireAuth);
 app.use(userRoutes.router);
 
 // create server and set up the sockets on the server
-const server = require('http').createServer(app);
+const server = require(process.env.HTTP).createServer(app);
 const io = require('socket.io')(server, {
   cors: {
-    origin: 'http://localhost:3000'
+    origin: process.env.FRONTEND_URL
   }
 });
 
@@ -57,11 +57,12 @@ io.on('connection', (socket) => {
   }
 
   function handleDeleteCode(data) {
-    io.sockets.adapter.rooms
-      .get(`${data.code}-${data.lectureId}`)
-      .forEach(function (client) {
+    const sockets = io.sockets.adapter.rooms.get(`${data.code}-${data.lectureId}`);
+    if (sockets && sockets.length) {
+      sockets.forEach(function (client) {
         io.sockets.sockets.get(client).leave(`${data.code}-${data.lectureId}`);
       });
+    }
   }
 
   async function handleAttendLecture(data) {
@@ -80,13 +81,15 @@ io.on('connection', (socket) => {
       } else {
         socket.emit('joinFailed');
       }
+    } else {
+      socket.emit('joinFailed');
     }
   }
 
   async function studentAttendsAndJoins(data, lectureId) {
     //student part of the room - join room and update attendance
     socket.join(`${data.code}-${lectureId.lecture_id}`);
-    let url = `http://localhost:8080/api/attendance/${lectureId.attendance_id}`;
+    let url = `${process.env.BACKEND_URL}/api/attendance/${lectureId.attendance_id}`;
     response = await fetch(url, {
       method: 'patch'
     });

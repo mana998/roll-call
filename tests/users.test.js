@@ -1,5 +1,5 @@
 const { calculateStudentsAttendance } = require('../routes/users');
-const { checkAge } = require('../routes/auth');
+const { checkAge, checkEmail, checkNameAndSurname } = require('../routes/auth');
 
 describe(`calculate students' overall attendance`, () => {
   // cases that should fail
@@ -15,49 +15,48 @@ describe(`calculate students' overall attendance`, () => {
   });
 
   // cases that should succeed
-  let expectedSet1 = [];
-  expectedSet1['john_doe@gmail.com'] = {
-    firstName: 'John',
-    lastName: 'Doe',
-    attendance: '100.00'
+  let expectedSet1 = {
+    'john_doe@gmail.com': {
+      firstName: 'John',
+      lastName: 'Doe',
+      attendance: '100.00'
+    },
+    'jane_doe@gmail.com': {
+      firstName: 'Jane',
+      lastName: 'Doe',
+      attendance: '100.00'
+    }
   };
 
-  expectedSet1['jane_doe@gmail.com'] = {
-    firstName: 'Jane',
-    lastName: 'Doe',
-    attendance: '100.00'
+  let expectedSet2 = {
+    'john_doe@gmail.com': {
+      firstName: 'John',
+      lastName: 'Doe',
+      attendance: '66.67'
+    },
+    'jane_doe@gmail.com': {
+      firstName: 'Jane',
+      lastName: 'Doe',
+      attendance: '50.00'
+    }
   };
 
-  let expectedSet2 = [];
-  expectedSet2['john_doe@gmail.com'] = {
-    firstName: 'John',
-    lastName: 'Doe',
-    attendance: '66.67'
-  };
-
-  expectedSet2['jane_doe@gmail.com'] = {
-    firstName: 'Jane',
-    lastName: 'Doe',
-    attendance: '50.00'
-  };
-
-  let expectedSet3 = [];
-  expectedSet3['john_doe@gmail.com'] = {
-    firstName: 'John',
-    lastName: 'Doe',
-    attendance: '0.00'
-  };
-
-  expectedSet3['jane_doe@gmail.com'] = {
-    firstName: 'Jane',
-    lastName: 'Doe',
-    attendance: '0.00'
-  };
-
-  expectedSet3['carl_nielsen@gmail.com'] = {
-    firstName: 'Carl',
-    lastName: 'Nielsen',
-    attendance: '0.00'
+  let expectedSet3 = {
+    'john_doe@gmail.com': {
+      firstName: 'John',
+      lastName: 'Doe',
+      attendance: '0.00'
+    },
+    'jane_doe@gmail.com': {
+      firstName: 'Jane',
+      lastName: 'Doe',
+      attendance: '0.00'
+    },
+    'carl_nielsen@gmail.com': {
+      firstName: 'Carl',
+      lastName: 'Nielsen',
+      attendance: '0.00'
+    }
   };
 
   it.each([
@@ -190,15 +189,84 @@ describe(`check student age`, () => {
     expect(checkAge(date)).toBe(false);
   });
 
+  test('should return true for valid string pattern', () => {
+    expect(checkAge('2000-03-05')).toBe(true);
+  });
+
   it.each([
     [null, 'Invalid format'],
     [[], 'Invalid format'],
     [7671, 'Invalid format'],
-    ['string', 'Invalid format'],
-    [{}, 'Invalid format']
+    [{}, 'Invalid format'],
+    ['string', 'Invalid string pattern for date'] //string with invalid format,
   ])('should throw invalid format error for %s argument', (arg, expected) => {
     expect(function () {
       checkAge(arg);
     }).toThrow(expected);
+  });
+});
+
+describe('check user email', () => {
+  describe('valid emails', () => {
+    it.each([
+      ['john.doe@gmail.com', true],
+      ['john.doe@gmail.dk', true],
+      ['jane-doe@yahoo.dk', true]
+    ])('should return true for %s', (arg, expected) => {
+      expect(checkEmail(arg)).toBe(expected);
+    });
+  });
+
+  describe('invalid emails', () => {
+    it.each([
+      ['john.doe_gmail.com', 'Invalid format'],
+      ['john.doe@gmail', 'Invalid format'],
+      ['john_doe_<div></div>@gmail.com', 'Invalid format'],
+      ['john_doe_;@gmail.com', 'Invalid format'],
+      ['@gmail.com', 'Invalid format'],
+      ['DROP DATABASE@gmail.com', 'Invalid format']
+    ])('should throw error for %s', (arg, expected) => {
+      expect(function () {
+        checkEmail(arg);
+      }).toThrow(expected);
+    });
+  });
+});
+
+describe('check user names', () => {
+  describe('valid names', () => {
+    it.each([
+      ['John', 'Doe'],
+      ['Johnathan', 'Thompson Richard'],
+      ['Mary Kate', 'Olsen'],
+      ['Kate', 'Sue-Williams'],
+      ['Brian', "Wells-O'Shaugnessy"],
+      ["A-random-name hmm'what-could go'wrong", 'This-is-still-good-right-on-edge'],
+      ["A-random-name hmm'what-could go'wrong", 'Mhm but-still-good']
+    ])('should return true for %s %s', (firstName, lastName) => {
+      expect(checkNameAndSurname(firstName, lastName)).toBe(true);
+    });
+  });
+
+  describe('invalid names', () => {
+    it.each([
+      ['John', '', 'Invalid format'],
+      ['', 'Doe', 'Invalid format'],
+      ['Þór', 'Nielsen', 'Invalid format'],
+      [
+        "A-random-name hmm'what-could go'wrong",
+        'This-time-it-is-absolutely-certain-that-it-is-way-too-long',
+        'Expected length exceeded'
+      ],
+      [
+        "A-random-name hmm'what-could go'wrong",
+        'This-is-just-right-over-thee-edge',
+        'Expected length exceeded'
+      ]
+    ])('should throw error for %s %s', (firstName, lastName, expected) => {
+      expect(function () {
+        checkNameAndSurname(firstName, lastName);
+      }).toThrow(expected);
+    });
   });
 });

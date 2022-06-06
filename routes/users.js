@@ -107,7 +107,7 @@ router.get('/api/users/students/:classId', (req, res) => {
 //get today's lectures for teacher with course name and time
 router.get('/api/users/lectures/:teacherId', (req, res) => {
   pool.getConnection((err, db) => {
-    var today = new Date('2022-05-03');
+    var today = new Date();
     var dd = String(today.getDate()).padStart(2, '0');
     var mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
     var yyyy = today.getFullYear();
@@ -118,7 +118,7 @@ router.get('/api/users/lectures/:teacherId', (req, res) => {
       [req.params.teacherId, `${yyyy}-${mm}-${dd}`],
       async (error, result, fields) => {
         if (result && result.length) {
-          console.log('teach', req.params.teacherId);
+          // console.log('teach', req.params.teacherId);
           res.send(result);
         } else {
           res.send({

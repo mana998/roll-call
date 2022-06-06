@@ -15,24 +15,36 @@ const {
 
 describe('GET /api/users/lectures/:teacherId', () => {
 
+    let teacherId;
+    let accessToken;
+
+    beforeAll(async () => {
+        teacherId = await saveTeacherToDB();
+        const loginResponse = await supertest(server).post('/api/users/login').send({
+            "email": "dimi1@gmail.com",
+            "password": "123$"
+        });
+        accessToken = loginResponse.body.accessToken;
+    });
+
     afterEach(async () => {
         await deleteLecturesFromDB();
-        await deleteTeachersFromDB();
         await deleteCoursesFromDB();
         await deleteClassesFromDB();
     }, 20000);
 
-    afterAll(() => {
+    afterAll(async () => {
+        await deleteTeachersFromDB();
         pool.end();
     });
 
     test("should get a single lecture for a teacher", async () => {
         const dateTime = formatDate(new Date());
         await saveCourseToDB(1, 'Development of Large Systems');
-        const teacherId = await saveTeacherToDB();
         await saveClassToDB(1, 'SD22w');
         const lecture = await saveLectureToDB(teacherId, dateTime, 1, 1);
         await supertest(server).get(`/api/users/lectures/${teacherId}`)
+            .set({Authorization: "Bearer " + accessToken})
             .expect(200)
             .then((response) => {
                 expect(Array.isArray(response.body)).toBeTruthy();
@@ -47,18 +59,18 @@ describe('GET /api/users/lectures/:teacherId', () => {
 
     test("should get multiple lectures for a teacher", async () => {
         const now = new Date();
-        const after2hours = new Date();
-        after2hours.setHours(after2hours.getHours() + 2);
+        const after45Minutes = new Date();
+        after45Minutes.setMinutes(after45Minutes.getMinutes() + 45);
         const nowFormatted = formatDate(now);
-        const after2hoursFormatted = formatDate(after2hours);
+        const after2hoursFormatted = formatDate(after45Minutes);
         await saveCourseToDB(1, 'Development of Large Systems');
         await saveCourseToDB(2, 'Testing');
-        const teacherId = await saveTeacherToDB();
         await saveClassToDB(1, 'SD22w');
         await saveClassToDB(2, 'SD23w');
         const lecture1 = await saveLectureToDB(teacherId, nowFormatted, 1, 1);
         const lecture2 = await saveLectureToDB(teacherId, after2hoursFormatted, 2, 2);
         await supertest(server).get(`/api/users/lectures/${teacherId}`)
+            .set({Authorization: "Bearer " + accessToken})
             .expect(200)
             .then((response) => {
                 expect(Array.isArray(response.body)).toBeTruthy();
@@ -66,7 +78,6 @@ describe('GET /api/users/lectures/:teacherId', () => {
                 const localDate1 = new Date(response.body[0].start_date_time); // we get time from server in UTC, new Date() converts it to local time
                 expect(formatDate(localDate1)).toEqual(nowFormatted);
                 expect(response.body[0].name).toEqual('Development of Large Systems');
-
                 expect(response.body[1].lecture_id).toEqual(lecture2.lecture_id);
                 const localDate2 = new Date(response.body[1].start_date_time);
                 expect(formatDate(localDate2)).toEqual(after2hoursFormatted);
@@ -82,10 +93,10 @@ describe('GET /api/users/lectures/:teacherId', () => {
         tomorrow.setDate(tomorrow.getDate() + 1);
         const tomorrowFormatted = formatDate(tomorrow);
         await saveCourseToDB(1, 'Development of Large Systems');
-        const teacherId = await saveTeacherToDB();
         await saveClassToDB(1, 'SD22w');
         await saveLectureToDB(teacherId, tomorrowFormatted, 1, 1);
         await supertest(server).get(`/api/users/lectures/${teacherId}`)
+            .set({Authorization: "Bearer " + accessToken})
             .expect(200)
             .then((response) => {
                 expect(Array.isArray(response.body)).toBeFalsy();
