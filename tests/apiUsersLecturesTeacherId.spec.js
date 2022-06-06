@@ -11,6 +11,7 @@ const {
     deleteCoursesFromDB,
     saveClassToDB,
     deleteClassesFromDB,
+    truncateTables,
 } = require("./dbMethods");
 
 describe('GET /api/users/lectures/:teacherId', () => {
@@ -19,6 +20,7 @@ describe('GET /api/users/lectures/:teacherId', () => {
     let accessToken;
 
     beforeAll(async () => {
+        await truncateTables();
         teacherId = await saveTeacherToDB();
         const loginResponse = await supertest(server).post('/api/users/login').send({
             "email": "dimi1@gmail.com",
@@ -34,12 +36,12 @@ describe('GET /api/users/lectures/:teacherId', () => {
     }, 20000);
 
     afterAll(async () => {
-        await deleteTeachersFromDB();
+        await truncateTables();
         pool.end();
     });
 
     test("should get a single lecture for a teacher", async () => {
-        const dateTime = formatDate(new Date());
+        const dateTime = new Date().toISOString().slice(0, 19).replace('T', ' ');
         await saveCourseToDB(1, 'Development of Large Systems');
         await saveClassToDB(1, 'SD22w');
         const lecture = await saveLectureToDB(teacherId, dateTime, 1, 1);
@@ -49,8 +51,8 @@ describe('GET /api/users/lectures/:teacherId', () => {
             .then((response) => {
                 expect(Array.isArray(response.body)).toBeTruthy();
                 expect(response.body[0].lecture_id).toEqual(lecture.lecture_id);
-                const localDate = new Date(response.body[0].start_date_time);
-                expect(formatDate(localDate)).toEqual(dateTime);
+                const localDate = new Date(response.body[0].start_date_time).toISOString().slice(0, 19).replace('T', ' ');
+                expect(localDate).toEqual(dateTime);
                 expect(response.body[0].name).toEqual('Development of Large Systems');
             }).catch(async (error) => {
                 console.log(error)

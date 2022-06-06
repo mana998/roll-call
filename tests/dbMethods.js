@@ -129,6 +129,28 @@ const deleteClassesFromDB = () => {
     })
 }
 
+const truncateTables = () => {
+    return new Promise((resolve, reject) => {
+      pool.getConnection((err, db) => {
+        let query =
+          'SET FOREIGN_KEY_CHECKS=0; ' +
+          'TRUNCATE TABLE courses; ' +
+          'TRUNCATE TABLE classes; ' +
+          'TRUNCATE TABLE users; ' +
+          'TRUNCATE TABLE lectures; ' +
+          'TRUNCATE TABLE attendance; ' +
+          'SET FOREIGN_KEY_CHECKS=1;';
+        db.query(query, (error, result, fields) => {
+          if (error) {
+            reject(error);
+          }
+          resolve(result);
+        });
+        db.release();
+      });
+    });
+  };
+
 module.exports = {
     saveCourseToDB,
     saveLectureToDB,
@@ -138,4 +160,5 @@ module.exports = {
     deleteTeachersFromDB,
     saveClassToDB,
     deleteClassesFromDB,
+    truncateTables,
 }

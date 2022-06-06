@@ -103,7 +103,7 @@ router.post('/api/users/register', (req, res) => {
                 });
               } else {
                 res.send({
-                  message: 'Something went wrong'
+                  message: 'Something went wrong. Try again.'
                 });
               }
             }
