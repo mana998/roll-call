@@ -12,11 +12,11 @@ INSERT INTO classes (class_id, name) VALUES
 (1, 'SD22w');
 
 INSERT INTO users (user_id, first_name, last_name, email, user_role, password, class_id, date_of_birth) VALUES
-(1, "Teacher1FirstName", "Teacher1LastName", "teacher1@gmail.com", "TEACHER", "$2b$15$uC0sNjstRkK/EBRnCLFkWujCEL.grKhk8NdLSFIccXwVeCR/o6lde", NULL, "1975-10-10"),
-(2, "Student1FirstName", "Student1LastName", "student1@gmail.com", "STUDENT", "$2b$15$uC0sNjstRkK/EBRnCLFkWujCEL.grKhk8NdLSFIccXwVeCR/o6lde", NULL, "1985-10-10"),
-(3, "Student2FirstName", "Student2LastName", "student2@gmail.com", "STUDENT", "$2b$15$uC0sNjstRkK/EBRnCLFkWujCEL.grKhk8NdLSFIccXwVeCR/o6lde", NULL, "1999-10-10"),
-(4, "Student3FirstName", "Student3LastName", "student3@gmail.com", "STUDENT", "$2b$15$uC0sNjstRkK/EBRnCLFkWujCEL.grKhk8NdLSFIccXwVeCR/o6lde", NULL, "1995-10-10"),
-(5, "Teacher2FirstName", "Teacher2LastName", "teacher2@gmail.com", "TEACHER", "$2b$15$uC0sNjstRkK/EBRnCLFkWujCEL.grKhk8NdLSFIccXwVeCR/o6lde", NULL, "1978-10-10");
+(1, "Daniel", "Smith", "teacher1@gmail.com", "TEACHER", "$2b$15$uC0sNjstRkK/EBRnCLFkWujCEL.grKhk8NdLSFIccXwVeCR/o6lde", NULL, "1975-10-10"),
+(2, "Amanda", "Steward", "student1@gmail.com", "STUDENT", "$2b$15$uC0sNjstRkK/EBRnCLFkWujCEL.grKhk8NdLSFIccXwVeCR/o6lde", 1, "1985-10-10"),
+(3, "Daniel", "Kane", "d-kane@yahoo.com", "STUDENT", "$2b$15$BR5PYctyivMXzlailWVOGO6z1HJNn.0hbS4FfBdd5q1FN2PSzGvfC", 1, "1999-10-10"),
+(4, "Dagmara", "Cain", "student3@gmail.com", "STUDENT", "$2b$15$uC0sNjstRkK/EBRnCLFkWujCEL.grKhk8NdLSFIccXwVeCR/o6lde", 1, "1995-10-10"),
+(5, "Nicolas", "Smith", "teacher2@gmail.com", "TEACHER", "$2b$15$uC0sNjstRkK/EBRnCLFkWujCEL.grKhk8NdLSFIccXwVeCR/o6lde", NULL, "1978-10-10");
 
 INSERT INTO courses (course_id, name) VALUES
 (1, 'Development of Large Systems');
