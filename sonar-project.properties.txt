@@ -3,7 +3,7 @@ sonar.projectKey=PROJECT KEY
 sonar.login=LOGIN
 sonar.password=PASSWORD
 # --- optional properties ---
-
+ 
 # defaults to project key
 sonar.projectName=PROJECT NAME
 # defaults to 'not provided'
