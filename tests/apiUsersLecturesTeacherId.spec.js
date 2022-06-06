@@ -6,7 +6,6 @@ const {
     saveTeacherToDB,
     saveLectureToDB,
     saveCourseToDB,
-    deleteTeachersFromDB,
     deleteLecturesFromDB,
     deleteCoursesFromDB,
     saveClassToDB,
@@ -20,7 +19,6 @@ describe('GET /api/users/lectures/:teacherId', () => {
     let accessToken;
 
     beforeAll(async () => {
-        await truncateTables();
         teacherId = await saveTeacherToDB();
         const loginResponse = await supertest(server).post('/api/users/login').send({
             "email": "dimi1@gmail.com",
@@ -41,18 +39,17 @@ describe('GET /api/users/lectures/:teacherId', () => {
     });
 
     test("should get a single lecture for a teacher", async () => {
-        const dateTime = new Date().toISOString().slice(0, 19).replace('T', ' ');
+        const dateTime = formatDate(new Date());
         await saveCourseToDB(1, 'Development of Large Systems');
         await saveClassToDB(1, 'SD22w');
-        const lecture = await saveLectureToDB(teacherId, dateTime, 1, 1);
+        await saveLectureToDB(teacherId, dateTime, 1, 1);
         await supertest(server).get(`/api/users/lectures/${teacherId}`)
             .set({Authorization: "Bearer " + accessToken})
             .expect(200)
             .then((response) => {
-                expect(Array.isArray(response.body)).toBeTruthy();
-                expect(response.body[0].lecture_id).toEqual(lecture.lecture_id);
-                const localDate = new Date(response.body[0].start_date_time).toISOString().slice(0, 19).replace('T', ' ');
-                expect(localDate).toEqual(dateTime);
+                const localDate = new Date(response.body[0].start_date_time);
+                expect(localDate.getDate()).toEqual(new Date(dateTime).getDate());
+                expect(localDate.getMinutes()).toEqual(new Date(dateTime).getMinutes());
                 expect(response.body[0].name).toEqual('Development of Large Systems');
             }).catch(async (error) => {
                 console.log(error)
@@ -78,11 +75,13 @@ describe('GET /api/users/lectures/:teacherId', () => {
                 expect(Array.isArray(response.body)).toBeTruthy();
                 expect(response.body[0].lecture_id).toEqual(lecture1.lecture_id);
                 const localDate1 = new Date(response.body[0].start_date_time); // we get time from server in UTC, new Date() converts it to local time
-                expect(formatDate(localDate1)).toEqual(nowFormatted);
+                expect(localDate1.getDate()).toEqual(new Date(nowFormatted).getDate());
+                expect(localDate1.getMinutes()).toEqual(new Date(nowFormatted).getMinutes());
                 expect(response.body[0].name).toEqual('Development of Large Systems');
                 expect(response.body[1].lecture_id).toEqual(lecture2.lecture_id);
                 const localDate2 = new Date(response.body[1].start_date_time);
-                expect(formatDate(localDate2)).toEqual(after2hoursFormatted);
+                expect(localDate2.getDate()).toEqual(new Date(after2hoursFormatted).getDate());
+                expect(localDate2.getMinutes()).toEqual(new Date(after2hoursFormatted).getMinutes());
                 expect(response.body[1].name).toEqual('Testing');
             }).catch(async (error) => {
                 console.log(error)
