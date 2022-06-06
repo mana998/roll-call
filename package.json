@@ -25,6 +25,7 @@
     "bcrypt": "^5.0.1",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
+    "cross-env": "^7.0.3",
     "dotenv": "^16.0.0",
     "eslint-plugin-jest": "^26.2.2",
     "express": "^4.17.3",
@@ -35,15 +36,7 @@
     "mysql2": "^2.3.3",
     "node-fetch": "^2.6.6",
     "socket.io": "^4.5.0",
-    "socket.io-client": "^4.5.0",
     "supertest": "^6.2.3"
-  },
-  "devDependencies": {
-    "cross-env": "^7.0.3",
-    "jest": "^28.1.0",
-    "nodemon": "^2.0.16",
-    "supertest": "^6.2.3",
-    "socket.io": "^4.5.0"
   },
   "jest": {
     "testEnvironment": "node",
