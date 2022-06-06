@@ -4,18 +4,53 @@ const request = supertest(server);
 
 const {pool} = require('../database/connection');
 
+let accessToken = null;
+let studentId = null;
+
 const getAccessToken = async () => {
     try {
-        const registerResponse = await request.post('/api/users/login').send({
-          "email": "v-kane@yahoo.com",
-          "password": "JmE95osSMM4bYF"
+        const resp = await request.post('/api/users/register').send({
+            email: 'integration@test.com',
+            password: 'TEST_integration',
+            firstName: 'fname',
+            lastName: 'lname', 
+            dateOfBirth: '2022-04-22', 
+            userRole: 'TEACHER', 
+            classId: null
         });
-        const accessToken = registerResponse._body.accessToken;
-        return accessToken;
+
+        const loginResponse = await request.post('/api/users/login').send({
+            email: 'integration@test.com',
+            password: 'TEST_integration',
+        });
+
+        return loginResponse.body.accessToken;
       } catch (error) {
         console.log(error);
       }
 };
+
+const truncateTables = () => {
+    return new Promise((resolve, reject) => {
+      pool.getConnection((err, db) => {
+        let query =
+          'SET FOREIGN_KEY_CHECKS=0; ' +
+          'TRUNCATE TABLE courses; ' +
+          'TRUNCATE TABLE classes; ' +
+          'TRUNCATE TABLE users; ' +
+          'TRUNCATE TABLE lectures; ' +
+          'TRUNCATE TABLE attendance; ' +
+          'SET FOREIGN_KEY_CHECKS=1;';
+        db.query(query, (error, result, fields) => {
+          if (error) {
+            reject(error);
+          }
+          resolve(result);
+        });
+        db.release();
+      });
+    });
+  };
 
 // CREATE testing records
 const createClass = () => {
@@ -116,128 +151,34 @@ const createAttendance = (studentId, lectureId) => {
     })
 };
 
-// DELETE testing records
-const deleteAttendance = (id) => {
-    return new Promise((resolve, reject) => { 
-        pool.getConnection((err, db) => {
-            const deleteQuery = `
-                DELETE FROM attendance 
-                WHERE attendance_id = ${id};
-            `;
-            db.query(deleteQuery, (error, result) => {
-                if (error) {
-                    reject(error);
-                }
-                resolve();
-            });
-            db.release();
-        });
-    })
-};
-
-const deleteLecture = (id) => {
-    return new Promise((resolve, reject) => { 
-        pool.getConnection((err, db) => {
-            const deleteLectureQuery = `
-                DELETE FROM lectures 
-                WHERE lecture_id = ${id};
-            `;
-            db.query(deleteLectureQuery, (error, result) => {
-                if (error) {
-                    reject(error);
-                }
-                resolve();
-            });
-            db.release();
-        });
-    })
-};
-
-const deleteUser = (id) => {
-    return new Promise((resolve, reject) => { 
-        pool.getConnection((err, db) => {
-            const deleteUserQuery = `
-                DELETE FROM users 
-                WHERE user_id = ${id};
-            `;
-            db.query(deleteUserQuery, (error, result) => {
-                if (error) {
-                    reject(error);
-                }
-                resolve();
-            });
-            db.release();
-        });
-    })
-};
-
-const deleteClass = (id) => {
-    return new Promise((resolve, reject) => { 
-        pool.getConnection((err, db) => {
-            const deleteClassQuery = `
-                DELETE FROM classes 
-                WHERE class_id = ${id};
-            `;
-            db.query(deleteClassQuery, (error, result) => {
-                if (error) {
-                    reject(error);
-                }
-                resolve();
-            });
-            db.release();
-        });
-    })
-};
-
-const deleteCourse = (id) => {
-    return new Promise((resolve, reject) => { 
-        pool.getConnection((err, db) => {
-            const deleteCourseQuery = `
-                DELETE FROM courses 
-                WHERE course_id = ${id};
-            `;
-            db.query(deleteCourseQuery, (error, result) => {
-                if (error) {
-                    reject(error);
-                }
-                resolve();
-            });
-            db.release();
-        });
-    })
-};
-
-describe('student integration tests', () => {
-  // make it as a transaction
-
-  test("GET /api/users/students/attendSance/:studentId", async () => {
+beforeAll(async () => {
+    await truncateTables();
 
     // to test the attendance of a studSent to a specific lecture we need records in the following tables:
     // attendances which requires records in: users (as a student), lectures
     // users which requires records in: classes
     // lectures which requires records in: users (as a teacher), courses, classes
-    
+
     const classId = await createClass();
-    // console.log(classId);
 
-    const studentId = await createUser(classId);
-    // console.log(studentId);
+    const teacherId = await createUser();
 
-    const teacherId = await createUser(null);
-    // console.log(teacherId)
+    // global variable
+    studentId = await createUser(classId);
 
     const courseId = await createCourse();
-    // console.log(courseId)
 
     const lectureId = await createLecture(teacherId, courseId, classId);
-    // console.log(lectureId);
 
-    const attendanceId = await createAttendance(studentId, lectureId);
-    // console.log(attendanceId);
+    await createAttendance(studentId, lectureId);
 
-    // create new attendance for that student
-    let accessToken = await getAccessToken();
-    
+    // global variable
+    accessToken = await getAccessToken();
+  }, 10000);
+
+describe('student integration tests', () => {
+
+  test("GET /api/users/students/attendance/:studentId", async () => {
     try {
       if (accessToken) {
         const endpointResponse = await request.get(`/api/users/students/attendance/${studentId}`).set({Authorization: "Bearer " + accessToken});
@@ -252,17 +193,10 @@ describe('student integration tests', () => {
     } catch (error) {
       console.log(error);
     }
+  }, 10000);
 
-    await deleteAttendance(attendanceId);
-    await deleteLecture(lectureId);
-    await deleteUser(studentId);
-    await deleteUser(teacherId);
-    await deleteCourse(courseId);
-    await deleteClass(classId);
-  }, 40000);
-
-  afterAll(()=> {
-      pool.end();
+  afterAll(async () => {
+    await truncateTables();
+    pool.end();
   });
-
 });

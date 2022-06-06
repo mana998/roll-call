@@ -1,5 +1,6 @@
 const router = require('express').Router();
 const bcrypt = require('bcrypt');
+const { type } = require('express/lib/response');
 const { pool } = require('../database/connection');
 
 async function getTeacher(db, teacher_id) {
@@ -58,6 +59,9 @@ router.get('/api/users/students/attendance/:studentId', (req, res) => {
 });
 
 function handleStudentStats(attendance) {
+  if (typeof (attendance) != 'object') { throw('Wrong data type'); } 
+  if (attendance.length === 0) { throw('Empty Array'); }
+
   const userStats = {
     firstName: attendance[0].firstName,
     lastName: attendance[0].lastName,
@@ -220,6 +224,10 @@ router.post('/api/users/teachers/attendance/:teacherId', (req, res) => {
 function calculateClassAttendanceBetweenDates(attendance, date, oldDate) {
   let attending = 0;
   let notAttending = 0;
+  if (attendance.length === 0 ) { throw('Empty array'); }
+
+  if (typeof (date) != 'object' || typeof (oldDate) != 'object') { throw('Parameters are incorrect'); }
+  
   attendance.map((user) => {
     if (user.classStartDate <= date && user.classStartDate >= oldDate) {
       user.isAttending ? attending++ : notAttending++;

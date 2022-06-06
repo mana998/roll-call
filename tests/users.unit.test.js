@@ -8,7 +8,7 @@ describe('test handleStudentStats()', () => {
     [
       // description
       'New course AND student is attending',
-      // attendance records
+      // Arrange
       [ 
         {firstName: 'Brenden', lastName: 'Odom', classStartDate: '2022-05-03 08:30:00', teacher_name: 'Kane', teacher_surname: 'Vasquez', className: 'SD22w', courseName: 'Development of Large Systems', isAttending: 1}
       ], 
@@ -19,7 +19,7 @@ describe('test handleStudentStats()', () => {
     [
       // description
       'New course AND student is NOT attending',
-      // attendance records
+      // Arrange
       [ 
         {firstName: 'Brenden', lastName: 'Odom', classStartDate: '2022-05-03 08:30:00', teacher_name: 'Kane', teacher_surname: 'Vasquez', className: 'SD22w', courseName: 'Testing', isAttending: 0}
       ], 
@@ -30,7 +30,7 @@ describe('test handleStudentStats()', () => {
     [
       // description
       'Multiple course records AND student is attending',
-      // attendance records
+      // Arrange
       [ 
         {firstName: 'Brenden', lastName: 'Odom', classStartDate: '2022-05-03 08:30:00', teacher_name: 'Kane', teacher_surname: 'Vasquez', className: 'SD22w', courseName: 'Testing', isAttending: 1},
         {firstName: 'Brenden', lastName: 'Odom', classStartDate: '2022-05-10 08:30:00', teacher_name: 'Kane', teacher_surname: 'Vasquez', className: 'SD22w', courseName: 'Testing', isAttending: 1}
@@ -42,7 +42,7 @@ describe('test handleStudentStats()', () => {
     [
       // description
       'Multiple records of the same course AND student is NOT attending',
-      // attendance records
+      // Arrange
       [ 
         {firstName: 'Brenden', lastName: 'Odom', classStartDate: '2022-05-03 08:30:00', teacher_name: 'Kane', teacher_surname: 'Vasquez', className: 'SD22w', courseName: 'Testing', isAttending: 1},
         {firstName: 'Brenden', lastName: 'Odom', classStartDate: '2022-05-10 08:30:00', teacher_name: 'Kane', teacher_surname: 'Vasquez', className: 'SD22w', courseName: 'Testing', isAttending: 0}
@@ -54,7 +54,7 @@ describe('test handleStudentStats()', () => {
     [
       // description
       'Multiple records of different courses',
-      // testing data
+      // Arrange
       [ 
         {firstName: 'Brenden', lastName: 'Odom', classStartDate: '2022-03-03 08:30:00', teacher_name: 'Kane', teacher_surname: 'Vasquez', className: 'SD22w', courseName: 'Development of Large Systems', isAttending: 1},
         {firstName: 'Brenden', lastName: 'Odom', classStartDate: '2022-03-10 08:30:00', teacher_name: 'Kane', teacher_surname: 'Vasquez', className: 'SD22w', courseName: 'Development of Large Systems', isAttending: 1},
@@ -70,8 +70,33 @@ describe('test handleStudentStats()', () => {
       { firstName: 'Brenden', lastName: 'Odom', 'Development of Large Systems': '100.00', 'Testing': '0.00', 'Databases for Developers': '33.33' }
     ]
   ])('%s', (attendance, data, result) => {
+    // Assert + Act
     expect(handleStudentStats(data)).toEqual(result);
   });
+
+  test('Empty array/No attendance', () => {
+    // Arrange
+    const parameter = [];
+
+    // Assert + Act
+    expect(() => { handleStudentStats(parameter); }).toThrow('Empty Array');
+  })
+
+  // Arrange
+  const nonValidValues = [
+    {value: ''},
+    {value: 'string'},
+    {value: true},
+    {value: 12}
+  ];
+
+  nonValidValues.forEach(({ value }) => {
+    test(`Throws exception non numeric value: ${value}`, () => {
+      // Assert + Act
+      expect(() => { handleStudentStats(value); }).toThrow('Wrong data type');
+    });
+  });
+
 });
 
 describe('test calculateClassAttendanceBetweenDates()', () => {
@@ -83,7 +108,7 @@ describe('test calculateClassAttendanceBetweenDates()', () => {
     [
       // description
       'Invalid lower boundary',
-      // attendance records
+      // Arrange
       [
         {...record1, classStartDate: new Date('2022-03-20T08:30:41'), isAttending: 1},
         {...record2, classStartDate: new Date('2022-03-20T08:30:40'), isAttending: 1},
@@ -98,7 +123,7 @@ describe('test calculateClassAttendanceBetweenDates()', () => {
     [
       // description
       'Valid lower boundaries',
-      // attendance records
+      // Arrange
       [
         {...record1, classStartDate: new Date('2022-03-21T08:45:15'), isAttending: 1},
         {...record2, classStartDate: new Date('2022-03-21T08:45:15'), isAttending: 0},
@@ -113,7 +138,7 @@ describe('test calculateClassAttendanceBetweenDates()', () => {
     [
       // description
       'Valid upper boundaries',
-      // attendance records
+      // Arrange
       [
         {...record1, classStartDate: new Date('2022-04-15T13:41:23'), isAttending: 1},
         {...record2, classStartDate: new Date('2022-04-15T13:41:23'), isAttending: 0},
@@ -128,7 +153,7 @@ describe('test calculateClassAttendanceBetweenDates()', () => {
     [
       // description
       'Invalid upper boundary',
-      // attendance records
+      // Arrange
       [
         {...record1, classStartDate: new Date('2022-02-25T12:41:25'), isAttending: 1},
         {...record1, classStartDate: new Date('2022-02-25T12:41:25'), isAttending: 1},
@@ -142,8 +167,8 @@ describe('test calculateClassAttendanceBetweenDates()', () => {
     // test 5
     [
       // description
-      'Value smaller than lowest boundary',
-      // attendance records
+      'Smaller than lowest boundary',
+      // Arrange
       [
         {...record1, classStartDate: new Date('1969-12-31T23:59:59'), isAttending: 1},
         {...record2, classStartDate: new Date('1966-05-05T12:12:12'), isAttending: 1},
@@ -156,8 +181,8 @@ describe('test calculateClassAttendanceBetweenDates()', () => {
     // test 6
     [
       // description
-      'Value bigger than highest boundary',
-      // attendance records
+      'Bigger than highest boundary',
+      // Arrange
       [
         {...record1, classStartDate: new Date('2022-02-14T12:41:25'), isAttending: 1},
         {...record2, classStartDate: new Date('2023-02-14T12:41:24'), isAttending: 1},
@@ -170,8 +195,8 @@ describe('test calculateClassAttendanceBetweenDates()', () => {
     // test 7
     [
       // description
-      'Value between boundaries',
-      // attendance records
+      'Between boundaries',
+      // Arrange
       [
         {...record1, classStartDate: new Date('2022-02-08T12:41:24'), isAttending: 1},
         {...record2, classStartDate: new Date('2022-02-09T12:41:24'), isAttending: 0},
@@ -183,22 +208,41 @@ describe('test calculateClassAttendanceBetweenDates()', () => {
       new Date('2022-02-07T12:41:24'), // old date
       // expected results
       '60.00'
-    ],
-    // test 8 
+    ]
+  ])('%s', (description, attendance, date, oldDate, result) => {
+    // Assert + Act
+    expect(calculateClassAttendanceBetweenDates(attendance, date, oldDate)).toEqual(result);
+  });
+
+  it.each([
+    // test 8
     [
       // description
       'Different types of data',
-      // attendance records
+      // Arrange
       [
-        {...record1, classStartDate: 'date', isAttending: 1},
-        {...record2, classStartDate: new Date('2022-02-09T12:41:24'), isAttending: 'string'},
+        {...record1, classStartDate: new Date('2022-02-10T11:41:24'), isAttending: 1},
+        {...record2, classStartDate: new Date('2022-02-09T12:41:24'), isAttending: 1},
       ],
       'current date', // current date
       'old date', // old date
       // expected results
-      {message: 'Wrong data type'}
+      'Parameters are incorrect'
+    ],
+    // test 9
+    [
+      // description
+      'Empty array/No attendance',
+      // Arrange
+      [],
+      new Date('2022-02-14T12:41:24'), // current date
+      new Date('2022-02-07T12:41:24'), // old date
+      // expected results
+      'Empty array'
     ]
   ])('%s', (description, attendance, date, oldDate, result) => {
-    expect(calculateClassAttendanceBetweenDates(attendance, date, oldDate)).toEqual(result);
+    // Assert + Act
+    expect(() => { calculateClassAttendanceBetweenDates(attendance, date, oldDate); }).toThrow(result);
   });
+
 });
