@@ -10,7 +10,7 @@ const config = {
   user: process.env.AZURE_USER,
   password: process.env.AZURE_PASSWORD,
   database:
-    test === 'test' ? process.env.AZURE_TEST_DATABASE : process.env.AZURE_DATABASE,
+      test === 'test' ? process.env.AZURE_TEST_DATABASE : process.env.AZURE_DATABASE,
   port: 3306,
   connectionLimit: 10,
   multipleStatements: test === 'test',
