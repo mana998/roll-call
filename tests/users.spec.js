@@ -13,9 +13,9 @@ const getAccessToken = async () => {
             email: 'integration@test.com',
             password: 'TEST_integration',
             firstName: 'fname',
-            lastName: 'lname', 
-            dateOfBirth: '2022-04-22', 
-            userRole: 'TEACHER', 
+            lastName: 'lname',
+            dateOfBirth: '2022-04-22',
+            userRole: 'TEACHER',
             classId: null
         });
 
@@ -26,7 +26,7 @@ const getAccessToken = async () => {
 
         return loginResponse.body.accessToken;
       } catch (error) {
-        console.log(error);
+          throw new Error(error)
       }
 };
 
@@ -54,7 +54,7 @@ const truncateTables = () => {
 
 // CREATE testing records
 const createClass = () => {
-    return new Promise((resolve, reject) => { 
+    return new Promise((resolve, reject) => {
         pool.getConnection((err, db) => {
             const createClassQuery = `
               INSERT INTO classes (name)
@@ -72,7 +72,7 @@ const createClass = () => {
 };
 
 const createUser = (classId) => {
-    return new Promise((resolve, reject) => { 
+    return new Promise((resolve, reject) => {
         pool.getConnection((err, db) => {
             let createUserQuery = '';
             if (classId) {
@@ -98,7 +98,7 @@ const createUser = (classId) => {
 };
 
 const createCourse = () => {
-    return new Promise((resolve, reject) => { 
+    return new Promise((resolve, reject) => {
         pool.getConnection((err, db) => {
             const createCourseQuery = `
               INSERT INTO courses (name)
@@ -116,7 +116,7 @@ const createCourse = () => {
 };
 
 const createLecture = (teacherId, courseId, classId) => {
-    return new Promise((resolve, reject) => { 
+    return new Promise((resolve, reject) => {
         pool.getConnection((err, db) => {
             const createLectureQuery = `
               INSERT INTO lectures (teacher_id, start_date_time, course_id, class_id)
@@ -134,7 +134,7 @@ const createLecture = (teacherId, courseId, classId) => {
 };
 
 const createAttendance = (studentId, lectureId) => {
-    return new Promise((resolve, reject) => { 
+    return new Promise((resolve, reject) => {
         pool.getConnection((err, db) => {
             const createAttendanceQuery = `
               INSERT INTO attendance (user_id, lecture_id, is_attending)
@@ -187,11 +187,9 @@ describe('student integration tests', () => {
         expect(endpointResponse.body.firstName).toBe('TEST fname');
         expect(endpointResponse.body.lastName).toBe('TEST lname');
         expect(endpointResponse.body['TEST Class']).toBe('100.00');
-      } else {
-        console.log("No access token");
       }
     } catch (error) {
-      console.log(error);
+      throw new Error(error)
     }
   }, 10000);
 

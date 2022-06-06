@@ -52,7 +52,7 @@ describe('GET /api/users/classes/courses/all/:teacherId', () => {
                 expect(response.body[0].class_id).toEqual(1);
                 expect(response.body[0].courseName).toEqual('Development of Large Systems');
             }).catch(async (error) => {
-                console.log(error)
+              throw new Error(error);
             });
     }, 20000);
 
@@ -77,7 +77,7 @@ describe('GET /api/users/classes/courses/all/:teacherId', () => {
                 expect(response.body[1].class_id).toEqual(2);
                 expect(response.body[1].courseName).toEqual('Testing');
             }).catch(async (error) => {
-                console.log(error)
+              throw new Error(error);
             });
     }, 20000);
 
@@ -99,7 +99,7 @@ describe('GET /api/users/classes/courses/all/:teacherId', () => {
             .expect(404)
             .then()
             .catch(async (error) => {
-                console.log(error)
+                throw new Error(error)
             });
     }, 20000);
 });

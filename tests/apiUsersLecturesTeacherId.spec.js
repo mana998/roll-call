@@ -52,7 +52,7 @@ describe('GET /api/users/lectures/:teacherId', () => {
                 expect(localDate.getMinutes()).toEqual(new Date(dateTime).getMinutes());
                 expect(response.body[0].name).toEqual('Development of Large Systems');
             }).catch(async (error) => {
-                console.log(error)
+                throw new Error(error)
             });
     }, 20000);
 
@@ -84,7 +84,7 @@ describe('GET /api/users/lectures/:teacherId', () => {
                 expect(localDate2.getMinutes()).toEqual(new Date(after2hoursFormatted).getMinutes());
                 expect(response.body[1].name).toEqual('Testing');
             }).catch(async (error) => {
-                console.log(error)
+                throw new Error(error)
             });
     }, 20000);
 
@@ -103,7 +103,7 @@ describe('GET /api/users/lectures/:teacherId', () => {
                 expect(Array.isArray(response.body)).toBeFalsy();
                 expect(response.body.message).toEqual('Something went wrong');
             }).catch(async (error) => {
-                console.log(error)
+            throw new Error(error)
             });
     }, 20000);
 });

@@ -59,7 +59,7 @@ router.get('/api/users/students/attendance/:studentId', (req, res) => {
 });
 
 function handleStudentStats(attendance) {
-  if (typeof (attendance) != 'object') { throw('Wrong data type'); } 
+  if (typeof (attendance) != 'object') { throw('Wrong data type'); }
   if (attendance.length === 0) { throw('Empty Array'); }
 
   const userStats = {
@@ -118,7 +118,6 @@ router.get('/api/users/lectures/:teacherId', (req, res) => {
       [req.params.teacherId, `${yyyy}-${mm}-${dd}`],
       async (error, result, fields) => {
         if (result && result.length) {
-          // console.log('teach', req.params.teacherId);
           res.send(result);
         } else {
           res.send({
@@ -227,7 +226,7 @@ function calculateClassAttendanceBetweenDates(attendance, date, oldDate) {
   if (attendance.length === 0 ) { throw('Empty array'); }
 
   if (typeof (date) != 'object' || typeof (oldDate) != 'object') { throw('Parameters are incorrect'); }
-  
+
   attendance.map((user) => {
     if (user.classStartDate <= date && user.classStartDate >= oldDate) {
       user.isAttending ? attending++ : notAttending++;

@@ -19,8 +19,6 @@ router.get('/refresh', (req, res) => {
           jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, payload) => {
             if (err || result[0].email !== payload.email) return res.sendStatus(403);
 
-            console.log('payload', payload);
-
             const user = {
               id: payload.id,
               email: payload.email,
@@ -231,7 +229,6 @@ const checkAge = (dateOfBirth) => {
 
     let pastDate = new Date();
     pastDate.setFullYear(pastDate.getFullYear() - 19);
-    console.log(pastDate);
     return pastDate >= dateOfBirth;
   } else {
     throw new Error('Invalid format');
