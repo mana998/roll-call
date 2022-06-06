@@ -58,9 +58,9 @@ router.post('/api/users/register', (req, res) => {
     } else if (userRole === 'STUDENT') {
       checkAge(dateOfBirth);
     }
+
     checkEmail(email);
     checkNameAndSurname(firstName, lastName);
-
     bcrypt.hash(password, saltRounds, (error, hash) => {
       if (!error) {
         pool.getConnection((err, db) => {
@@ -98,9 +98,9 @@ router.post('/api/users/register', (req, res) => {
                   httpOnly: true,
                   maxAge: 24 * 60 * 60 * 1000 // 1 day
                 });
-                res
-                  .status(202)
-                  .send({message: `User ${firstName} ${lastName} is registered & logged in!`});
+                res.status(202).send({
+                  message: `User ${firstName} ${lastName} is registered & logged in!`
+                });
               } else {
                 res.send({
                   message: 'Something went wrong'
@@ -220,9 +220,18 @@ router.get('/logout', (req, res) => {
 
 // check if student is above 19 years old
 const checkAge = (dateOfBirth) => {
-  if (Object.prototype.toString.call(dateOfBirth) === '[object String]') {
+  const dateOfBirthType = Object.prototype.toString.call(dateOfBirth);
+
+  if (dateOfBirthType === '[object Date]' || dateOfBirthType === '[object String]') {
+    dateOfBirth = Date.parse(dateOfBirth); //check for invalid date pattern if string
+
+    if (isNaN(dateOfBirth)) {
+      throw new Error('Invalid string pattern for date');
+    }
+
     let pastDate = new Date();
     pastDate.setFullYear(pastDate.getFullYear() - 19);
+    console.log(pastDate);
     return pastDate >= dateOfBirth;
   } else {
     throw new Error('Invalid format');
@@ -230,8 +239,8 @@ const checkAge = (dateOfBirth) => {
 };
 
 const checkEmail = (email) => {
-  const mailformat = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
-  if (email.match(mailformat)) {
+  const mailFormat = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+  if (email.match(mailFormat)) {
     return true;
   } else {
     throw new Error('Invalid format');
@@ -239,8 +248,13 @@ const checkEmail = (email) => {
 };
 
 const checkNameAndSurname = (firstName, lastName) => {
-  const mailformat = /^[A-Za-z0-9]*$/;
-  if (firstName.match(mailformat) && lastName.match(mailformat)) {
+  const nameFormat = /^\s*([A-Za-z]{1,}([\.,] |[-']| ))+[A-Za-z]+\.?\s*$/; //english ones, for now
+  const fullName = firstName + ' ' + lastName;
+
+  if (fullName.match(nameFormat)) {
+    if (fullName.length > 70) {
+      throw new Error('Expected length exceeded');
+    }
     return true;
   } else {
     throw new Error('Invalid format');
@@ -249,5 +263,7 @@ const checkNameAndSurname = (firstName, lastName) => {
 
 module.exports = {
   checkAge,
+  checkEmail,
+  checkNameAndSurname,
   router
 };
