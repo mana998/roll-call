@@ -8,7 +8,7 @@
     "start-e2e": "cross-env ENV=test node index.js",
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "lint": "eslint . --fix",
+    "lint": "eslint .",
     "sonar": "npx sonar-scanner"
   },
   "repository": {
