@@ -7,7 +7,7 @@ describe('generateCode test', () => {
   const allowedCharactersRegex = new RegExp(/[a-zA-Z0-9]*/);
 
   const testsDefinedValues = [
-    { args: 1, expected: 10 },
+    { args: 1, expected: 1 },
     { args: 2, expected: 2 },
     { args: 50, expected: 50 },
     { args: 99, expected: 99 },
